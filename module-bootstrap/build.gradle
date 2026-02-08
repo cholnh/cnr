@@ -12,6 +12,7 @@ dependencies {
     implementation project(':module-adaptor:inbound:api')
     implementation project(':module-core:application')
     implementation project(':module-adaptor:outbound:rds')
+    implementation project(':module-adaptor:outbound:redis')
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

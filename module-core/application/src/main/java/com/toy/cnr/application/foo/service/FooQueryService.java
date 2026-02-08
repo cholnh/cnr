@@ -7,6 +7,7 @@ import com.toy.cnr.domain.foo.FooCreateCommand;
 import com.toy.cnr.domain.foo.FooUpdateCommand;
 import com.toy.cnr.port.common.RepositoryResult;
 import com.toy.cnr.port.foo.FooRepository;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,6 +23,7 @@ public class FooQueryService {
         this.fooRepository = fooRepository;
     }
 
+    @Cacheable(cacheNames = {"fooCache"}, key = "'allFoos'")
     public List<Foo> findAll() {
         var externalFooList = fooRepository.findAll();
         return externalFooList.stream()
@@ -29,6 +31,7 @@ public class FooQueryService {
             .toList();
     }
 
+    @Cacheable(cacheNames = {"fooCache"}, key = "#id")
     public CommandResult<Foo> findById(Long id) {
         return switch (fooRepository.findById(id)) {
             case RepositoryResult.Found(var data) ->
