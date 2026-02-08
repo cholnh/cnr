@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: cnr-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: cnr
+      POSTGRES_USER: cnr-local
+      POSTGRES_PASSWORD: cnr-local
+    volumes:
+      - cnr-postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: cnr-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - cnr-redis-data:/data
+    restart: unless-stopped
+
+volumes:
+  cnr-postgres-data:
+  cnr-redis-data:
