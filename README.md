@@ -84,12 +84,13 @@ HTTP 요청이 처리되는 전체 흐름을 예시(`Foo` 도메인)로 설명�
 ### 요청 흐름 상세 (Foo 조회 예시)
 
 1. `FooApi`가 HTTP GET `/v1/foo/{id}` 요청을 수신
-2. `FooUseCase.findFooWithBusinessLogic(id)`을 호출
+2. `FooUseCase.findFooWithBusinessLogic(id)`을 호출 → `CommandResult<FooResponse>` 반환
 3. `FooQueryService.findById(id)`가 `FooRepository` 포트를 통해 데이터 조회
-4. `FooRepositoryImpl`이 실제 저장소에서 `FooEntity`를 조회 → `FooDto`로 변환하여 반환
+4. `FooRepositoryImpl`이 실제 저장소에서 `FooEntity`를 조회 → `RepositoryResult<FooDto>` 반환
 5. `FooMapper.toDomain(dto)`으로 도메인 객체 `Foo`로 변환
 6. `Foo.fooBusinessLogic()`으로 비즈니스 로직 수행
-7. `FooResponse.from(foo)`로 응답 DTO 생성 후 반환
+7. UseCase가 `FooResponse.from(foo)`로 응답 표현 객체 생성 → `CommandResult<FooResponse>` 반환
+8. Controller가 `CommandResult`를 switch 패턴 매칭으로 `ResponseEntity`로 변환 후 반환
 
 ### Sealed 타입 기반 데이터 흐름
 

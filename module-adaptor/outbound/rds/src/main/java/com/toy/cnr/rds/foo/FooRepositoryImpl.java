@@ -6,8 +6,9 @@ import com.toy.cnr.port.foo.model.FooCreateDto;
 import com.toy.cnr.port.foo.model.FooDto;
 import com.toy.cnr.port.foo.model.FooUpdateDto;
 import com.toy.cnr.rds.foo.entity.FooEntity;
-import java.util.List;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 public class FooRepositoryImpl implements FooRepository {
@@ -19,10 +20,15 @@ public class FooRepositoryImpl implements FooRepository {
     }
 
     @Override
-    public List<FooDto> findAll() {
-        return fooJpaRepository.findAll().stream()
-            .map(FooEntity::toDto)
-            .toList();
+    public RepositoryResult<List<FooDto>> findAll() {
+        try {
+            var list = fooJpaRepository.findAll().stream()
+                .map(FooEntity::toDto)
+                .toList();
+            return new RepositoryResult.Found<>(list);
+        } catch (Exception e) {
+            return new RepositoryResult.Error<>(e);
+        }
     }
 
     @Override
@@ -39,10 +45,14 @@ public class FooRepositoryImpl implements FooRepository {
     }
 
     @Override
-    public FooDto save(FooCreateDto dto) {
-        var entity = FooEntity.create(dto);
-        var saved = fooJpaRepository.save(entity);
-        return saved.toDto();
+    public RepositoryResult<FooDto> save(FooCreateDto dto) {
+        try {
+            var entity = FooEntity.create(dto);
+            var saved = fooJpaRepository.save(entity);
+            return new RepositoryResult.Found<>(saved.toDto());
+        } catch (Exception e) {
+            return new RepositoryResult.Error<>(e);
+        }
     }
 
     @Override
@@ -63,7 +73,12 @@ public class FooRepositoryImpl implements FooRepository {
     }
 
     @Override
-    public void deleteById(Long id) {
-        fooJpaRepository.deleteById(id);
+    public RepositoryResult<Void> deleteById(Long id) {
+        try {
+            fooJpaRepository.deleteById(id);
+            return new RepositoryResult.Found<>(null);
+        } catch (Exception e) {
+            return new RepositoryResult.Error<>(e);
+        }
     }
 }

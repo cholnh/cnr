@@ -1,16 +1,14 @@
 package com.toy.cnr.application.foo.service;
 
+import com.toy.cnr.application.common.ResultMapper;
 import com.toy.cnr.application.foo.mapper.FooMapper;
 import com.toy.cnr.domain.common.CommandResult;
 import com.toy.cnr.domain.foo.Foo;
 import com.toy.cnr.domain.foo.FooCreateCommand;
 import com.toy.cnr.domain.foo.FooUpdateCommand;
-import com.toy.cnr.port.common.RepositoryResult;
 import com.toy.cnr.port.foo.FooRepository;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
+import org.springframework.stereotype.Service;
 
 @Service
 public class FooQueryService {
@@ -23,24 +21,16 @@ public class FooQueryService {
         this.fooRepository = fooRepository;
     }
 
-    @Cacheable(cacheNames = {"fooCache"}, key = "'allFoos'")
-    public List<Foo> findAll() {
-        var externalFooList = fooRepository.findAll();
-        return externalFooList.stream()
-            .map(FooMapper::toDomain)
-            .toList();
+    public CommandResult<List<Foo>> findAll() {
+        return ResultMapper.toCommandResult(
+            fooRepository.findAll()
+                .map(list -> list.stream().map(FooMapper::toDomain).toList())
+        );
     }
 
-    @Cacheable(cacheNames = {"fooCache"}, key = "#id")
     public CommandResult<Foo> findById(Long id) {
-        return switch (fooRepository.findById(id)) {
-            case RepositoryResult.Found(var data) ->
-                new CommandResult.Success<>(FooMapper.toDomain(data), null);
-            case RepositoryResult.NotFound(var msg) ->
-                new CommandResult.BusinessError<>(msg);
-            case RepositoryResult.Error(var e) ->
-                new CommandResult.BusinessError<>(e.getMessage());
-        };
+        return ResultMapper.toCommandResult(fooRepository.findById(id))
+            .map(FooMapper::toDomain);
     }
 
     public Foo doBusinessLogic(Foo foo) {
@@ -48,27 +38,16 @@ public class FooQueryService {
     }
 
     public CommandResult<Foo> create(FooCreateCommand command) {
-        var externalRequest = FooMapper.toExternal(command);
-        var externalFoo = fooRepository.save(externalRequest);
-        return new CommandResult.Success<>(
-            FooMapper.toDomain(externalFoo),
-            "Foo created successfully"
-        );
+        return ResultMapper.toCommandResult(fooRepository.save(FooMapper.toExternal(command)))
+            .map(FooMapper::toDomain);
     }
 
     public CommandResult<Foo> update(Long id, FooUpdateCommand command) {
-        var externalRequest = FooMapper.toExternal(command);
-        return switch (fooRepository.update(id, externalRequest)) {
-            case RepositoryResult.Found(var data) ->
-                new CommandResult.Success<>(FooMapper.toDomain(data), null);
-            case RepositoryResult.NotFound(var msg) ->
-                new CommandResult.BusinessError<>(msg);
-            case RepositoryResult.Error(var e) ->
-                new CommandResult.BusinessError<>(e.getMessage());
-        };
+        return ResultMapper.toCommandResult(fooRepository.update(id, FooMapper.toExternal(command)))
+            .map(FooMapper::toDomain);
     }
 
-    public void delete(Long id) {
-        fooRepository.deleteById(id);
+    public CommandResult<Void> delete(Long id) {
+        return ResultMapper.toCommandResult(fooRepository.deleteById(id));
     }
 }

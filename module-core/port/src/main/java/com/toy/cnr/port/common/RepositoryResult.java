@@ -1,5 +1,7 @@
 package com.toy.cnr.port.common;
 
+import java.util.function.Function;
+
 /**
  * Repository 계층의 결과를 표현하는 sealed 인터페이스.
  * <p>
@@ -8,19 +10,36 @@ package com.toy.cnr.port.common;
  * <p>
  * 사용 예시:
  * <pre>{@code
- * RepositoryResult<FooDto> result = fooRepository.findById(id);
- *
+ * // switch 패턴 매칭
  * return switch (result) {
  *     case RepositoryResult.Found(var data) -> handleSuccess(data);
  *     case RepositoryResult.NotFound(var msg) -> handleNotFound(msg);
- *     case RepositoryResult.Error(var msg) -> handleError(msg);
+ *     case RepositoryResult.Error(var t) -> handleError(t);
  * };
+ *
+ * // map으로 성공 데이터 변환 (실패는 자동 전파)
+ * RepositoryResult<Foo> result = repository.findById(id).map(FooMapper::toDomain);
  * }</pre>
  *
  * @param <T> 조회/저장 결과 데이터 타입
  */
 public sealed interface RepositoryResult<T>
     permits RepositoryResult.Found, RepositoryResult.NotFound, RepositoryResult.Error {
+
+    /**
+     * 성공 데이터를 변환합니다. 실패 케이스는 타입만 변경되어 그대로 전파됩니다.
+     *
+     * @param mapper 성공 데이터 변환 함수
+     * @param <R>    변환된 타입
+     * @return 변환된 RepositoryResult
+     */
+    default <R> RepositoryResult<R> map(Function<T, R> mapper) {
+        return switch (this) {
+            case Found(var data) -> new Found<>(mapper.apply(data));
+            case NotFound(var msg) -> new NotFound<>(msg);
+            case Error(var t) -> new Error<>(t);
+        };
+    }
 
     /**
      * 데이터를 성공적으로 찾은 경우.

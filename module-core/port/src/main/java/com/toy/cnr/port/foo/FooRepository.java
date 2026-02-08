@@ -8,9 +8,9 @@ import com.toy.cnr.port.foo.model.FooUpdateDto;
 import java.util.List;
 
 public interface FooRepository {
-    List<FooDto> findAll();
+    RepositoryResult<List<FooDto>> findAll();
     RepositoryResult<FooDto> findById(Long id);
-    FooDto save(FooCreateDto dto);
+    RepositoryResult<FooDto> save(FooCreateDto dto);
     RepositoryResult<FooDto> update(Long id, FooUpdateDto dto);
-    void deleteById(Long id);
+    RepositoryResult<Void> deleteById(Long id);
 }
