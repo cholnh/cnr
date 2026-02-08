@@ -327,6 +327,10 @@ public class FooQueryService {
 }
 ```
 
+## Lombok 어노테이션
+
+### lombok.config : 프로젝트 루트 디렉토리에 `lombok.config` 파일을 읽어 롬복 스타일을 일관되게 유지합니다.
+
 ## IntelliJ IDEA 설정
 
 프로젝트 전체에 이 스타일을 적용하려면 IntelliJ IDEA에서:

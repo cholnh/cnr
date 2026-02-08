@@ -8,11 +8,11 @@
 
 ## 하위 모듈
 
-| 모듈 | 설명 | 상태 | 링크 |
-|---|---|---|---|
-| rdb | RDB 저장소 구현 (JPA, QueryDSL) | 구현됨 | [rdb/README.md](rdb/README.md) |
-| external | 외부 API 클라이언트 | 상위 모듈 | [external/README.md](external/README.md) |
-| external:foo-client | Foo 외부 서비스 연동 | 스켈레톤 | [external/foo-client/README.md](external/foo-client/README.md) |
+| 모듈                  | 설명                         | 상태 | 링크                                                             |
+|---------------------|----------------------------|---|----------------------------------------------------------------|
+| rds                 | RDS 저장소 구현 (JPA, QueryDSL) | 구현됨 | [rds/README.md](rds/README.md)                                 |
+| external            | 외부 API 클라이언트               | 상위 모듈 | [external/README.md](external/README.md)                       |
+| external:foo-client | Foo 외부 서비스 연동              | 스켈레톤 | [external/foo-client/README.md](external/foo-client/README.md) |
 
 ## 공통 패턴
 

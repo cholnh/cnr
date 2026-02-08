@@ -19,7 +19,7 @@ include(
     'module-adaptor:inbound:event',
     'module-adaptor:inbound:batch',
     'module-adaptor:outbound',
-    'module-adaptor:outbound:rdb',
+    'module-adaptor:outbound:rds',
     'module-adaptor:outbound:external',
     'module-adaptor:outbound:external:foo-client',
 )

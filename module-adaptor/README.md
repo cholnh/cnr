@@ -16,7 +16,7 @@ module-adaptor/
 │   ├── event/            ← 이벤트 리스너 (스켈레톤)
 │   └── batch/            ← 배치 작업 (스켈레톤)
 └── outbound/             ← 내부에서 외부로 나가는 요청 처리
-    ├── rdb/              ← RDB 저장소 구현
+    ├── rds/              ← RDS 저장소 구현
     └── external/         ← 외부 API 클라이언트
         └── foo-client/   ← Foo 외부 서비스 연동 (스켈레톤)
 ```
@@ -32,13 +32,13 @@ module-adaptor/
 
 ## 상세 README
 
-| 모듈 | 설명 | 링크 |
-|---|---|---|
-| api | REST API 컨트롤러 | [inbound/api/README.md](inbound/api/README.md) |
-| event | 이벤트 리스너 | [inbound/event/README.md](inbound/event/README.md) |
-| batch | 배치 작업 | [inbound/batch/README.md](inbound/batch/README.md) |
-| rdb | RDB 저장소 구현 | [outbound/rdb/README.md](outbound/rdb/README.md) |
-| external | 외부 API 클라이언트 | [outbound/external/README.md](outbound/external/README.md) |
+| 모듈       | 설명            | 링크                                                         |
+|----------|---------------|------------------------------------------------------------|
+| api      | REST API 컨트롤러 | [inbound/api/README.md](inbound/api/README.md)             |
+| event    | 이벤트 리스너       | [inbound/event/README.md](inbound/event/README.md)         |
+| batch    | 배치 작업         | [inbound/batch/README.md](inbound/batch/README.md)         |
+| rds      | RDS 저장소 구현    | [outbound/rds/README.md](outbound/rds/README.md)           |
+| external | 외부 API 클라이언트  | [outbound/external/README.md](outbound/external/README.md) |
 
 ## 어댑터 추가 가이드
 

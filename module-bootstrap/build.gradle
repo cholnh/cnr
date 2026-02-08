@@ -11,7 +11,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation project(':module-adaptor:inbound:api')
     implementation project(':module-core:application')
-    implementation project(':module-adaptor:outbound:rdb')
+    implementation project(':module-adaptor:outbound:rds')
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

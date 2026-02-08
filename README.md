@@ -27,7 +27,7 @@ copsNrobbers/
     │   ├── event/              ← 이벤트 리스너 (스켈레톤)
     │   └── batch/              ← 배치 작업 (스켈레톤)
     └── outbound/               ← 내부 → 외부 (데이터 저장/호출)
-        ├── rdb/                ← RDB 저장소 구현
+        ├── rds/                ← RDS 저장소 구현
         └── external/           ← 외부 API 클라이언트
             └── foo-client/     ← Foo 외부 서비스 연동 (스켈레톤)
 ```
@@ -38,7 +38,7 @@ copsNrobbers/
 module-bootstrap
 ├── module-adaptor:inbound:api
 ├── module-core:application
-└── module-adaptor:outbound:rdb
+└── module-adaptor:outbound:rds
 
 module-adaptor:inbound:api
 ├── module-core:application
@@ -48,7 +48,7 @@ module-core:application
 ├── module-core:domain
 └── module-core:port
 
-module-adaptor:outbound:rdb
+module-adaptor:outbound:rds
 └── module-core:port
 
 module-adaptor:outbound:external:foo-client
@@ -113,20 +113,20 @@ FooUpdateRequest → FooUpdateCommand → FooUpdateDto → FooEntity → [저장
 
 ## 문제별 참고 모듈 가이드
 
-| 상황 | 참고할 모듈 README |
-|---|---|
-| 새로운 도메인/엔티티를 추가하고 싶다 | [module-core/domain](module-core/domain/README.md) |
-| 비즈니스 로직을 수정하고 싶다 | [module-core/domain](module-core/domain/README.md) |
-| 서비스 레이어를 수정/추가하고 싶다 | [module-core/application](module-core/application/README.md) |
-| 포트(인터페이스)를 정의하고 싶다 | [module-core/port](module-core/port/README.md) |
-| REST API 엔드포인트를 추가/수정하고 싶다 | [module-adaptor/inbound/api](module-adaptor/inbound/api/README.md) |
-| DB 관련 구현을 수정하고 싶다 | [module-adaptor/outbound/rdb](module-adaptor/outbound/rdb/README.md) |
+| 상황 | 참고할 모듈 README                                                                  |
+|---|--------------------------------------------------------------------------------|
+| 새로운 도메인/엔티티를 추가하고 싶다 | [module-core/domain](module-core/domain/README.md)                             |
+| 비즈니스 로직을 수정하고 싶다 | [module-core/domain](module-core/domain/README.md)                             |
+| 서비스 레이어를 수정/추가하고 싶다 | [module-core/application](module-core/application/README.md)                   |
+| 포트(인터페이스)를 정의하고 싶다 | [module-core/port](module-core/port/README.md)                                 |
+| REST API 엔드포인트를 추가/수정하고 싶다 | [module-adaptor/inbound/api](module-adaptor/inbound/api/README.md)             |
+| DB 관련 구현을 수정하고 싶다 | [module-adaptor/outbound/rds](module-adaptor/outbound/rds/README.md)           |
 | 외부 API 연동을 추가하고 싶다 | [module-adaptor/outbound/external](module-adaptor/outbound/external/README.md) |
-| 배치 작업을 추가하고 싶다 | [module-adaptor/inbound/batch](module-adaptor/inbound/batch/README.md) |
-| 이벤트 처리를 추가하고 싶다 | [module-adaptor/inbound/event](module-adaptor/inbound/event/README.md) |
-| 공통 유틸리티를 추가하고 싶다 | [module-utils](module-utils/README.md) |
-| 애플리케이션 설정/실행 문제가 있다 | [module-bootstrap](module-bootstrap/README.md) |
-| 프로젝트 전체 구조를 이해하고 싶다 | 이 문서 (README.md) |
+| 배치 작업을 추가하고 싶다 | [module-adaptor/inbound/batch](module-adaptor/inbound/batch/README.md)         |
+| 이벤트 처리를 추가하고 싶다 | [module-adaptor/inbound/event](module-adaptor/inbound/event/README.md)         |
+| 공통 유틸리티를 추가하고 싶다 | [module-utils](module-utils/README.md)                                         |
+| 애플리케이션 설정/실행 문제가 있다 | [module-bootstrap](module-bootstrap/README.md)                                 |
+| 프로젝트 전체 구조를 이해하고 싶다 | 이 문서 (README.md)                                                               |
 
 ## 빠른 시작
 

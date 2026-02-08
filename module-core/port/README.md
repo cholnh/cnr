@@ -60,7 +60,7 @@ public interface FooRepository {
 }
 ```
 
-- 이 인터페이스의 구현체는 `module-adaptor:outbound:rdb`에 위치
+- 이 인터페이스의 구현체는 `module-adaptor:outbound:rds`에 위치
 - `application` 모듈에서는 이 인터페이스에만 의존하여, 실제 저장소 기술과 무관하게 동작
 - `findById`, `update`는 `RepositoryResult`를 반환하여 성공/실패를 타입으로 표현
 

@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: copsNrobbers
+  config:
+    import:
+      - application-rds.yml
+  profiles:
+    active: local
+
+server:
+  tomcat:
+    uri-encoding: UTF-8
+    threads:
+      max: 500

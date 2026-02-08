@@ -1,6 +1,6 @@
-# module-adaptor:outbound:rdb
+# module-adaptor:outbound:rds
 
-**RDB 아웃바운드 어댑터** 모듈입니다. `module-core:port`에 정의된 Repository 인터페이스를 관계형 데이터베이스를 사용하여 구현합니다.
+**RDS 아웃바운드 어댑터** 모듈입니다. `module-core:port`에 정의된 Repository 인터페이스를 관계형 데이터베이스를 사용하여 구현합니다.
 
 ## 역할
 
@@ -11,9 +11,9 @@
 ## 구조
 
 ```
-rdb/
+rdS/
 ├── build.gradle
-└── src/main/java/com/toy/cnr/rdb/
+└── src/main/java/com/toy/cnr/rds/
     └── foo/
         ├── entity/
         │   └── FooEntity.java           ← JPA 엔티티
@@ -108,12 +108,12 @@ public class FooEntity {
 }
 ```
 
-## 새로운 도메인의 RDB 구현 추가 예시
+## 새로운 도메인의 RDS 구현 추가 예시
 
-`Bar` 도메인의 RDB 어댑터를 추가하는 경우:
+`Bar` 도메인의 RDS 어댑터를 추가하는 경우:
 
 ```
-rdb/src/main/java/com/toy/cnr/rdb/
+rds/src/main/java/com/toy/cnr/rds/
 └── bar/
     ├── entity/
     │   └── BarEntity.java

@@ -28,7 +28,7 @@ module-bootstrap/
 dependencies {
     implementation project(':module-adaptor:inbound:api')   // REST API 엔드포인트
     implementation project(':module-core:application')      // 비즈니스 서비스
-    implementation project(':module-adaptor:outbound:rdb')  // 데이터베이스 구현
+    implementation project(':module-adaptor:outbound:rds')  // 데이터베이스 구현
 }
 ```
 
