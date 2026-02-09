@@ -4,7 +4,7 @@ spring:
   config:
     import:
       - application-rds.yml
-      - application-redis.yml
+      - application-cache.yml
   profiles:
     active: local
 

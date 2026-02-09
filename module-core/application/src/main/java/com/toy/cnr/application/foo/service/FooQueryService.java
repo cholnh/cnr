@@ -8,6 +8,7 @@ import com.toy.cnr.domain.foo.FooCreateCommand;
 import com.toy.cnr.domain.foo.FooUpdateCommand;
 import com.toy.cnr.port.foo.FooRepository;
 import java.util.List;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -28,6 +29,7 @@ public class FooQueryService {
         );
     }
 
+    @Cacheable(cacheNames = {"FooCache"}, key = "#id")
     public CommandResult<Foo> findById(Long id) {
         return ResultMapper.toCommandResult(fooRepository.findById(id))
             .map(FooMapper::toDomain);

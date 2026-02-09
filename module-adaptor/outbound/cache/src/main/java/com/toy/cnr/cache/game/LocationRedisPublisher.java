@@ -1,4 +1,4 @@
-package com.toy.cnr.redis.game;
+package com.toy.cnr.cache.game;
 
 import com.toy.cnr.port.game.LocationPublisher;
 import com.toy.cnr.port.game.model.LocationDto;

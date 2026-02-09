@@ -20,7 +20,7 @@ include(
     'module-adaptor:inbound:batch',
     'module-adaptor:outbound',
     'module-adaptor:outbound:rds',
-    'module-adaptor:outbound:redis',
+    'module-adaptor:outbound:cache',
     'module-adaptor:outbound:external',
     'module-adaptor:outbound:external:foo-client',
 )

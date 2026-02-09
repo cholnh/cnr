@@ -1,4 +1,4 @@
-package com.toy.cnr.redis.config;
+package com.toy.cnr.cache.config;
 
 import java.time.Duration;
 

@@ -23,7 +23,7 @@ spring:
       on-profile: local
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/cnr
+    url: jdbc:postgresql://localhost:5432/postgres
     username: cnr-local
     password: cnr-local
     hikari:
@@ -52,7 +52,9 @@ spring:
       on-profile: prod
 
   datasource:
-    url: jdbc:postgresql://hidden
+    url: jdbc:postgresql://aws-1-ap-south-1.pooler.supabase.com:5432/postgres
+    username: ${RDS_POSTGRES_USERNAME}
+    password: ${RDS_POSTGRES_PASSWORD}
     hikari:
       maximum-pool-size: 20
       minimum-idle: 10
