@@ -2,8 +2,6 @@ name: Deploy to Home Server
 
 on:
   workflow_dispatch:  # 수동 트리거
-  push:
-    branches: [main]
 
 jobs:
   deploy:
