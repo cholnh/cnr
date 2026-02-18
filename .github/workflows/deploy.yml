@@ -5,7 +5,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: cnr-home-server
+    runs-on: nzziui-Mac-Studio
 
     steps:
       - uses: actions/checkout@v4
