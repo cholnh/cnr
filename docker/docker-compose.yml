@@ -44,7 +44,25 @@ services:
       - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
     restart: unless-stopped
+
+  actions-runner:
+    image: myoung34/github-runner:latest
+    container_name: cnr-actions-runner
+    environment:
+      REPO_URL: ${GITHUB_URL}
+      ACCESS_TOKEN: ${GITHUB_TOKEN}
+      RUNNER_NAME: cnr-home-server
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./runner-data:/home/runner
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+      - app
 
 volumes:
   cnr-postgres-data:
