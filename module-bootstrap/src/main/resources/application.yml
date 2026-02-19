@@ -13,3 +13,4 @@ server:
     uri-encoding: UTF-8
     threads:
       max: 500
+  port: 8081
