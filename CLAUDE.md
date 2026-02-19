@@ -62,3 +62,36 @@ module-adaptor → module-core:port → module-core:application → module-core:
 - Long method chains: each `.method()` call on its own line
 - Constructor injection only (no field injection)
 - Use `var` for local variable type inference where type is obvious
+
+## Package & Naming Conventions
+
+Base package: `com.toy.cnr`
+
+| Module | Package | Key class patterns |
+|--------|---------|-------------------|
+| `module-core:domain` | `.domain.<name>` | `<Name>` (record), `<Name>CreateCommand`, `<Name>UpdateCommand` |
+| `module-core:application` | `.application.<name>` | `<Name>QueryService` (`@Service`), `<Name>Mapper` (`@UtilityClass`) |
+| `module-core:port` | `.port.<name>` | `<Name>Repository` (interface), `<Name>Dto`, `<Name>CreateDto`, `<Name>UpdateDto` |
+| `module-adaptor:inbound:api` | `.api.<name>` | `<Name>Api` (`@RestController`), `<Name>UseCase` (`@Component`), `<Name>CreateRequest`, `<Name>Response` |
+| `module-adaptor:outbound:rds` | `.rds.<name>` | `<Name>Entity`, `<Name>RepositoryImpl` (`@Repository`) |
+| `module-adaptor:outbound:external` | `.external.<name>` | `<Name>FeignClient`, `<Name>ExternalRepository` |
+
+**Responsibility split (api layer):**
+- `UseCase` — business orchestration, returns `CommandResult<*Response>` (no HTTP concerns)
+- `*Api` — HTTP concerns only, converts `CommandResult` → `ResponseEntity` via switch pattern matching
+
+## Module README Reference
+
+Read the relevant README when working on that layer (on-demand, not auto-loaded):
+
+| Task | README |
+|------|--------|
+| Domain model / business logic | `module-core/domain/README.md` |
+| Service layer | `module-core/application/README.md` |
+| Port interfaces / DTOs | `module-core/port/README.md` |
+| REST API + UseCase | `module-adaptor/inbound/api/README.md` |
+| DB (JPA) implementation | `module-adaptor/outbound/rds/README.md` |
+| External API client (Feign) | `module-adaptor/outbound/external/README.md` |
+| Batch jobs | `module-adaptor/inbound/batch/README.md` |
+| Event listeners | `module-adaptor/inbound/event/README.md` |
+| Bootstrap / app config | `module-bootstrap/README.md` |
