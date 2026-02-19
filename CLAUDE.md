@@ -54,7 +54,7 @@ module-adaptor → module-core:port → module-core:application → module-core:
 - `local` — PostgreSQL on localhost:5432, `ddl-auto=update`, debug logging
 - `prod` — Supabase PostgreSQL, Aiven Valkey, `ddl-auto=validate`
 
-## Code Style (from `code-convention.md`)
+## Code Style (from `(rules) code-convention.md`)
 
 - 4-space indentation, max 120 characters per line
 - When parameters exceed 120 chars, each parameter goes on its own line with closing `)` on a separate line
