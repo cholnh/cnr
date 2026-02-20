@@ -21,9 +21,20 @@ subprojects {
         maven { url = 'https://repo.spring.io/snapshot' }
     }
 
+    configurations {
+        compileOnly {
+            extendsFrom annotationProcessor
+        }
+    }
+
     dependencies {
-        compileOnly 'org.projectlombok:lombok:1.18.34'
-        annotationProcessor 'org.projectlombok:lombok:1.18.34'
+        compileOnly "org.projectlombok:lombok:${lombokVersion}"
+        annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+        implementation "org.apache.commons:commons-lang3:${commonsLang3Version}"
+        implementation "org.apache.commons:commons-collections4:${commonsCollections4Version}"
+        testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+        testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+        testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
     }
 
     tasks.named('test') {

@@ -1,0 +1,47 @@
+security:
+  authentication:
+    path: /v1/auth/token
+    method: POST
+    usernameParameterKey: email
+    passwordParameterKey: password
+  refresh:
+    path: /v1/auth/refresh
+    method: POST
+    tokenCookieKey: refreshToken
+  authorization:
+    bearerDelimiterKey: Bearer
+---
+jwt:
+  private: ${jwt.private}
+  accessToken:
+    ttl: 3600 # 1 hour
+  refreshToken:
+    ttl: 43200 # 12 hours
+---
+bcrypt:
+  encrypt:
+    round: 10
+---
+permitMatcher:
+  path:
+    # common api
+    - method: "GET"
+      pattern: "/elb-health"
+    - method: "*"
+      pattern: "/actuator/**"
+    # docs
+    - method: "*"
+      pattern: "/docs"
+    - method: "*"
+      pattern: "/webjars/**"
+    - method: "*"
+      pattern: "/swagger/**"
+    - method: "*"
+      pattern: "/swagger-ui/**"
+    - method: "*"
+      pattern: "/swagger-resources/**"
+    - method: "*"
+      pattern: "/v2/api-docs/**"
+    - method: "*"
+      pattern: "/v3/api-docs/**"
+---
