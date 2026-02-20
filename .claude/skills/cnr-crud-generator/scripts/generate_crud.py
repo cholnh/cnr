@@ -656,65 +656,47 @@ public class {D}RepositoryImpl implements {D}Repository {{
 
     @Override
     public RepositoryResult<List<{D}Dto>> findAll() {{
-        try {{
+        return RepositoryResult.wrap(() -> {{
             var list = {to_camel(D)}JpaRepository.findAll().stream()
                 .map({D}Entity::toDto)
                 .toList();
             return new RepositoryResult.Found<>(list);
-        }} catch (Exception e) {{
-            return new RepositoryResult.Error<>(e);
-        }}
+        }});
     }}
 
     @Override
     public RepositoryResult<{D}Dto> findById(Long id) {{
-        try {{
-            return {to_camel(D)}JpaRepository.findById(id)
-                .map(entity -> (RepositoryResult<{D}Dto>) new RepositoryResult.Found<>(entity.toDto()))
-                .orElse(new RepositoryResult.NotFound<>(
-                    "{D} not found with id: " + id
-                ));
-        }} catch (Exception e) {{
-            return new RepositoryResult.Error<>(e);
-        }}
+        return RepositoryResult.ofOptional(
+            () -> {to_camel(D)}JpaRepository.findById(id).map({D}Entity::toDto),
+            "{D} not found with id: " + id
+        );
     }}
 
     @Override
     public RepositoryResult<{D}Dto> save({D}CreateDto dto) {{
-        try {{
-            var entity = {D}Entity.create(dto);
-            var saved = {to_camel(D)}JpaRepository.save(entity);
+        return RepositoryResult.wrap(() -> {{
+            var saved = {to_camel(D)}JpaRepository.save({D}Entity.create(dto));
             return new RepositoryResult.Found<>(saved.toDto());
-        }} catch (Exception e) {{
-            return new RepositoryResult.Error<>(e);
-        }}
+        }});
     }}
 
     @Override
     public RepositoryResult<{D}Dto> update(Long id, {D}UpdateDto dto) {{
-        try {{
-            return {to_camel(D)}JpaRepository.findById(id)
-                .map(entity -> {{
-                    entity.update(dto);
-                    var saved = {to_camel(D)}JpaRepository.save(entity);
-                    return (RepositoryResult<{D}Dto>) new RepositoryResult.Found<>(saved.toDto());
-                }})
-                .orElse(new RepositoryResult.NotFound<>(
-                    "{D} not found with id: " + id
-                ));
-        }} catch (Exception e) {{
-            return new RepositoryResult.Error<>(e);
-        }}
+        return RepositoryResult.ofOptional(
+            () -> {to_camel(D)}JpaRepository.findById(id).map(entity -> {{
+                entity.update(dto);
+                return {to_camel(D)}JpaRepository.save(entity).toDto();
+            }}),
+            "{D} not found with id: " + id
+        );
     }}
 
     @Override
     public RepositoryResult<Void> deleteById(Long id) {{
-        try {{
+        return RepositoryResult.wrap(() -> {{
             {to_camel(D)}JpaRepository.deleteById(id);
             return new RepositoryResult.Found<>(null);
-        }} catch (Exception e) {{
-            return new RepositoryResult.Error<>(e);
-        }}
+        }});
     }}
 }}
 """

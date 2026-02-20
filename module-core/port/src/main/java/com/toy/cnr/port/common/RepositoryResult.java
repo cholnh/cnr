@@ -1,6 +1,8 @@
 package com.toy.cnr.port.common;
 
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Repository 계층의 결과를 표현하는 sealed 인터페이스.
@@ -39,6 +41,41 @@ public sealed interface RepositoryResult<T>
             case NotFound(var msg) -> new NotFound<>(msg);
             case Error(var t) -> new Error<>(t);
         };
+    }
+
+    /**
+     * try-catch 보일러플레이트를 제거합니다.
+     * action 실행 중 예외가 발생하면 {@link Error}로 감쌉니다.
+     *
+     * @param action RepositoryResult를 반환하는 작업
+     * @param <T>    결과 데이터 타입
+     * @return 작업 결과 또는 Error
+     */
+    static <T> RepositoryResult<T> wrap(Supplier<RepositoryResult<T>> action) {
+        try {
+            return action.get();
+        } catch (Exception e) {
+            return new Error<>(e);
+        }
+    }
+
+    /**
+     * Optional을 반환하는 작업을 실행하고 Found / NotFound / Error로 변환합니다.
+     * try-catch와 Optional 매핑을 한 번에 처리합니다.
+     *
+     * @param supplier         Optional을 반환하는 작업
+     * @param notFoundMessage  찾지 못했을 때 메시지
+     * @param <T>              결과 데이터 타입
+     * @return Found, NotFound, 또는 Error
+     */
+    static <T> RepositoryResult<T> ofOptional(Supplier<Optional<T>> supplier, String notFoundMessage) {
+        try {
+            return supplier.get()
+                .map(data -> (RepositoryResult<T>) new Found<>(data))
+                .orElse(new NotFound<>(notFoundMessage));
+        } catch (Exception e) {
+            return new Error<>(e);
+        }
     }
 
     /**
