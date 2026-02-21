@@ -16,6 +16,7 @@ include(
     'module-adaptor',
     'module-adaptor:inbound',
     'module-adaptor:inbound:api',
+    'module-adaptor:inbound:security',
     'module-adaptor:inbound:event',
     'module-adaptor:inbound:batch',
     'module-adaptor:outbound',
@@ -23,4 +24,5 @@ include(
     'module-adaptor:outbound:cache',
     'module-adaptor:outbound:external',
     'module-adaptor:outbound:external:foo-client',
+    'module-adaptor:outbound:external:kakao-oauth-client',
 )

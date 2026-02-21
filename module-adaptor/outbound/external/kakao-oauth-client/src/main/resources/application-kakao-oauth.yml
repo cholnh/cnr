@@ -1,0 +1,6 @@
+kakao:
+  oauth:
+    token-url: https://kauth.kakao.com/oauth/token
+    user-info-url: https://kapi.kakao.com/v2/user/me
+    client-id: ${KAKAO_CLIENT_ID:kakao-client-id-placeholder}
+    redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:8081/v1/auth/oauth/kakao/callback}
