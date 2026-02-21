@@ -24,4 +24,5 @@ include(
     'module-adaptor:outbound:cache',
     'module-adaptor:outbound:external',
     'module-adaptor:outbound:external:foo-client',
+    'module-adaptor:outbound:external:kakao-oauth-client',
 )

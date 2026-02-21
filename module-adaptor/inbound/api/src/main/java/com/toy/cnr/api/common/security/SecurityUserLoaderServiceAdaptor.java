@@ -1,5 +1,6 @@
 package com.toy.cnr.api.common.security;
 
+import com.toy.cnr.application.user.service.UserAuthLocalService;
 import com.toy.cnr.application.user.service.UserService;
 import com.toy.cnr.domain.common.CommandResult;
 import com.toy.cnr.domain.user.User;
@@ -23,15 +24,20 @@ import java.util.Set;
 public class SecurityUserLoaderServiceAdaptor implements SecurityUserLoaderService {
 
     private final UserService userService;
+    private final UserAuthLocalService userAuthLocalService;
 
-    public SecurityUserLoaderServiceAdaptor(UserService userService) {
+    public SecurityUserLoaderServiceAdaptor(
+        UserService userService,
+        UserAuthLocalService userAuthLocalService
+    ) {
         this.userService = userService;
+        this.userAuthLocalService = userAuthLocalService;
     }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return switch (userService.findByEmail(email)) {
-            case CommandResult.Success(var data, var msg) -> createUserDetails(data);
+        var user = switch (userService.findByEmail(email)) {
+            case CommandResult.Success(var data, var msg) -> data;
             case CommandResult.ValidationError(var errors) -> {
                 log.error("Validation error while loading user by email : {}, errors : {}", email, errors);
                 throw InvalidUsernameException.of();
@@ -41,6 +47,18 @@ public class SecurityUserLoaderServiceAdaptor implements SecurityUserLoaderServi
                 throw InvalidUsernameException.of();
             }
         };
+        var passwordHash = switch (userAuthLocalService.findPasswordHashByEmail(email)) {
+            case CommandResult.Success(var hash, var msg) -> hash;
+            case CommandResult.ValidationError(var errors) -> {
+                log.error("Validation error while loading password hash by email : {}, errors : {}", email, errors);
+                throw InvalidUsernameException.of();
+            }
+            case CommandResult.BusinessError(var reason) -> {
+                log.error("Local auth not found for email : {}, reason : {}", email, reason);
+                throw InvalidUsernameException.of();
+            }
+        };
+        return createUserDetails(user, passwordHash);
     }
 
     @Override
@@ -48,10 +66,10 @@ public class SecurityUserLoaderServiceAdaptor implements SecurityUserLoaderServi
         userService.updateLastLoginAt(username, lastLoginAt);
     }
 
-    private UserDetails createUserDetails(User user) {
+    private UserDetails createUserDetails(User user, String passwordHash) {
         return AuthenticatedUser.of(
             user.email(),
-            user.password(),
+            passwordHash,
             true,
             true,
             true,

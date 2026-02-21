@@ -4,6 +4,9 @@ security:
     method: POST
     usernameParameterKey: email
     passwordParameterKey: password
+  oauth:
+    path: /v1/auth/oauth
+    method: POST
   refresh:
     path: /v1/auth/refresh
     method: POST
@@ -27,6 +30,9 @@ permitMatcher:
     # common api
     - method: "GET"
       pattern: "/elb-health"
+    # oauth
+    - method: "POST"
+      pattern: "/v1/auth/oauth"
     - method: "*"
       pattern: "/actuator/**"
     # docs

@@ -24,7 +24,7 @@ import java.io.IOException;
 @Component("userAuthenticationFilter")
 public class UserAuthenticationFilter extends OncePerRequestFilter {
 
-    private AntPathRequestMatcher pathMatcher;
+    protected AntPathRequestMatcher pathMatcher;
 
     @Value("${security.authentication.path}")
     private String path;

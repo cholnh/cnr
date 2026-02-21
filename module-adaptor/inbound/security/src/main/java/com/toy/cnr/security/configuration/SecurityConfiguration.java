@@ -1,5 +1,6 @@
 package com.toy.cnr.security.configuration;
 
+import com.toy.cnr.security.filter.OAuthAuthenticationFilter;
 import com.toy.cnr.security.filter.RefreshAuthenticationFilter;
 import com.toy.cnr.security.filter.UserAuthenticationFilter;
 import com.toy.cnr.security.filter.UserAuthorizationFilter;
@@ -23,17 +24,20 @@ public class SecurityConfiguration {
 
     private final PermitMatcherProvider permitMatcherProvider;
     private final UserAuthenticationFilter userAuthenticationFilter;
+    private final OAuthAuthenticationFilter oAuthAuthenticationFilter;
     private final RefreshAuthenticationFilter refreshAuthenticationFilter;
     private final UserAuthorizationFilter userAuthorizationFilter;
 
     public SecurityConfiguration(
         @Qualifier("permitMatcherProvider") PermitMatcherProvider permitMatcherProvider,
         @Qualifier("userAuthenticationFilter") UserAuthenticationFilter userAuthenticationFilter,
+        @Qualifier("oAuthAuthenticationFilter") OAuthAuthenticationFilter oAuthAuthenticationFilter,
         @Qualifier("refreshAuthenticationFilter") RefreshAuthenticationFilter refreshAuthenticationFilter,
         @Qualifier("userAuthorizationFilter") UserAuthorizationFilter userAuthorizationFilter
     ) {
         this.permitMatcherProvider = permitMatcherProvider;
         this.userAuthenticationFilter = userAuthenticationFilter;
+        this.oAuthAuthenticationFilter = oAuthAuthenticationFilter;
         this.refreshAuthenticationFilter = refreshAuthenticationFilter;
         this.userAuthorizationFilter = userAuthorizationFilter;
     }
@@ -49,6 +53,7 @@ public class SecurityConfiguration {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .addFilterBefore(userAuthenticationFilter, LogoutFilter.class)
+            .addFilterBefore(oAuthAuthenticationFilter, LogoutFilter.class)
             .addFilterBefore(refreshAuthenticationFilter, LogoutFilter.class)
             .addFilterBefore(userAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
             .cors(Customizer.withDefaults())

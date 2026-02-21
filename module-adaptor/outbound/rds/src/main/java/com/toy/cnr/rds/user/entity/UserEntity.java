@@ -1,15 +1,17 @@
 package com.toy.cnr.rds.user.entity;
 
+import com.toy.cnr.port.user.model.UserCreateDto;
 import com.toy.cnr.port.user.model.UserDto;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "user_entity")
+@Table(name = "users")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserEntity {
@@ -21,17 +23,23 @@ public class UserEntity {
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    @Column(name = "password", nullable = false)
-    private String password;
+    @Column(name = "name", nullable = false)
+    private String name;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
-    private UserEntity(Long id, String email, String password, LocalDateTime lastLoginAt) {
-        this.id = id;
+    private UserEntity(String email, String name) {
         this.email = email;
-        this.password = password;
-        this.lastLoginAt = lastLoginAt;
+        this.name = name;
+    }
+
+    public static UserEntity create(UserCreateDto dto) {
+        return new UserEntity(dto.email(), dto.name());
     }
 
     public void updateLastLoginAt(LocalDateTime lastLoginAt) {
@@ -39,6 +47,6 @@ public class UserEntity {
     }
 
     public UserDto toDto() {
-        return new UserDto(id, email, password);
+        return new UserDto(id, email, name, createdAt);
     }
 }

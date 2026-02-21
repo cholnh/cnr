@@ -2,6 +2,7 @@ package com.toy.cnr.rds.user;
 
 import com.toy.cnr.port.common.RepositoryResult;
 import com.toy.cnr.port.user.UserRepository;
+import com.toy.cnr.port.user.model.UserCreateDto;
 import com.toy.cnr.port.user.model.UserDto;
 import com.toy.cnr.rds.user.entity.UserEntity;
 import org.springframework.stereotype.Repository;
@@ -23,6 +24,14 @@ public class UserRepositoryImpl implements UserRepository {
             () -> userJpaRepository.findByEmail(email).map(UserEntity::toDto),
             "User not found with email: " + email
         );
+    }
+
+    @Override
+    public RepositoryResult<UserDto> save(UserCreateDto dto) {
+        return RepositoryResult.wrap(() -> {
+            var entity = userJpaRepository.save(UserEntity.create(dto));
+            return new RepositoryResult.Found<>(entity.toDto());
+        });
     }
 
     @Override

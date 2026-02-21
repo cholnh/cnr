@@ -8,6 +8,7 @@ spring:
       - application-rds.yml
       - application-cache.yml
       - application-security.yml
+      - application-kakao-oauth.yml
 
 server:
   tomcat:
