@@ -4,10 +4,7 @@ import com.toy.cnr.port.common.RepositoryResult;
 import com.toy.cnr.port.oauth.OAuthProviderRepository;
 import com.toy.cnr.port.oauth.model.OAuthUserInfoDto;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.web.client.RestClient;
 
 import java.util.Map;
 
@@ -16,11 +13,8 @@ public class KakaoOAuthProviderRepositoryImpl implements OAuthProviderRepository
 
     private static final String PROVIDER_KAKAO = "kakao";
 
-    @Value("${kakao.oauth.token-url}")
-    private String tokenUrl;
-
-    @Value("${kakao.oauth.user-info-url}")
-    private String userInfoUrl;
+    private final KakaoAuthClient kakaoAuthClient;
+    private final KakaoApiClient kakaoApiClient;
 
     @Value("${kakao.oauth.client-id}")
     private String clientId;
@@ -28,10 +22,9 @@ public class KakaoOAuthProviderRepositoryImpl implements OAuthProviderRepository
     @Value("${kakao.oauth.redirect-uri}")
     private String redirectUri;
 
-    private final RestClient restClient;
-
-    public KakaoOAuthProviderRepositoryImpl() {
-        this.restClient = RestClient.create();
+    public KakaoOAuthProviderRepositoryImpl(KakaoAuthClient kakaoAuthClient, KakaoApiClient kakaoApiClient) {
+        this.kakaoAuthClient = kakaoAuthClient;
+        this.kakaoApiClient = kakaoApiClient;
     }
 
     @Override
@@ -46,31 +39,22 @@ public class KakaoOAuthProviderRepositoryImpl implements OAuthProviderRepository
         });
     }
 
-    @SuppressWarnings("unchecked")
     private String fetchAccessToken(String code) {
-        var params = new LinkedMultiValueMap<String, String>();
-        params.add("grant_type", "authorization_code");
-        params.add("client_id", clientId);
-        params.add("redirect_uri", redirectUri);
-        params.add("code", code);
+        var params = Map.of(
+            "grant_type", "authorization_code",
+            "client_id", clientId,
+            "redirect_uri", redirectUri,
+            "code", code
+        );
 
-        var response = restClient.post()
-            .uri(tokenUrl)
-            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-            .body(params)
-            .retrieve()
-            .body(Map.class);
+        var response = kakaoAuthClient.fetchAccessToken(params);
 
         return (String) response.get("access_token");
     }
 
     @SuppressWarnings("unchecked")
     private OAuthUserInfoDto fetchKakaoUserInfo(String accessToken) {
-        var response = restClient.get()
-            .uri(userInfoUrl)
-            .header("Authorization", "Bearer " + accessToken)
-            .retrieve()
-            .body(Map.class);
+        var response = kakaoApiClient.fetchUserInfo("Bearer " + accessToken);
 
         var id = String.valueOf(response.get("id"));
         var kakaoAccount = (Map<String, Object>) response.getOrDefault("kakao_account", Map.of());
