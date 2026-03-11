@@ -14,7 +14,7 @@
 module-bootstrap/
 ├── build.gradle
 └── src/main/
-    ├── java/com/toy/cnr/
+    ├── java/com/toy/cnr/server/
     │   └── ApiApplication.java          ← Spring Boot main class
     └── resources/
         └── application.properties       ← 애플리케이션 설정

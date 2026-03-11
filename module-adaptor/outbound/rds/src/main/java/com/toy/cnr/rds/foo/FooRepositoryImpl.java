@@ -21,64 +21,46 @@ public class FooRepositoryImpl implements FooRepository {
 
     @Override
     public RepositoryResult<List<FooDto>> findAll() {
-        try {
+        return RepositoryResult.wrap(() -> {
             var list = fooJpaRepository.findAll().stream()
                 .map(FooEntity::toDto)
                 .toList();
             return new RepositoryResult.Found<>(list);
-        } catch (Exception e) {
-            return new RepositoryResult.Error<>(e);
-        }
+        });
     }
 
     @Override
     public RepositoryResult<FooDto> findById(Long id) {
-        try {
-            return fooJpaRepository.findById(id)
-                .map(entity -> (RepositoryResult<FooDto>) new RepositoryResult.Found<>(entity.toDto()))
-                .orElse(new RepositoryResult.NotFound<>(
-                    "Foo not found with id: " + id
-                ));
-        } catch (Exception e) {
-            return new RepositoryResult.Error<>(e);
-        }
+        return RepositoryResult.ofOptional(
+            () -> fooJpaRepository.findById(id).map(FooEntity::toDto),
+            "Foo not found with id: " + id
+        );
     }
 
     @Override
     public RepositoryResult<FooDto> save(FooCreateDto dto) {
-        try {
-            var entity = FooEntity.create(dto);
-            var saved = fooJpaRepository.save(entity);
+        return RepositoryResult.wrap(() -> {
+            var saved = fooJpaRepository.save(FooEntity.create(dto));
             return new RepositoryResult.Found<>(saved.toDto());
-        } catch (Exception e) {
-            return new RepositoryResult.Error<>(e);
-        }
+        });
     }
 
     @Override
     public RepositoryResult<FooDto> update(Long id, FooUpdateDto dto) {
-        try {
-            return fooJpaRepository.findById(id)
-                .map(entity -> {
-                    entity.update(dto);
-                    var saved = fooJpaRepository.save(entity);
-                    return (RepositoryResult<FooDto>) new RepositoryResult.Found<>(saved.toDto());
-                })
-                .orElse(new RepositoryResult.NotFound<>(
-                    "Foo not found with id: " + id
-                ));
-        } catch (Exception e) {
-            return new RepositoryResult.Error<>(e);
-        }
+        return RepositoryResult.ofOptional(
+            () -> fooJpaRepository.findById(id).map(entity -> {
+                entity.update(dto);
+                return fooJpaRepository.save(entity).toDto();
+            }),
+            "Foo not found with id: " + id
+        );
     }
 
     @Override
     public RepositoryResult<Void> deleteById(Long id) {
-        try {
+        return RepositoryResult.wrap(() -> {
             fooJpaRepository.deleteById(id);
             return new RepositoryResult.Found<>(null);
-        } catch (Exception e) {
-            return new RepositoryResult.Error<>(e);
-        }
+        });
     }
 }

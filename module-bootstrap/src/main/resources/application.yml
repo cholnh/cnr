@@ -1,16 +1,21 @@
 spring:
   application:
     name: copsNrobbers
+  profiles:
+    active: local
   config:
     import:
       - application-rds.yml
       - application-cache.yml
-  profiles:
-    active: local
+      - application-security.yml
+      - application-kakao-oauth.yml
 
 server:
   tomcat:
     uri-encoding: UTF-8
     threads:
       max: 500
+  compression:
+    enabled: true
+    min-response-size: 2048
   port: 8081

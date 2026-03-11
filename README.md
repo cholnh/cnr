@@ -136,6 +136,27 @@ FooUpdateRequest → FooUpdateCommand → FooUpdateDto → FooEntity → [저장
 - Java 21+
 - Docker & Docker Compose
 
+### 0. 환경 변수 설정 (.env)
+
+프로젝트 루트에 `.env` 파일을 생성해야 애플리케이션을 실행할 수 있습니다.
+
+```bash
+# 프로젝트 루트에 .env 파일 생성
+cp .env.example .env
+# 이후 .env 파일을 열어 각 값을 채워넣습니다
+```
+
+| 변수명 | 설명 |
+|---|---|
+| `RDS_POSTGRES_USERNAME` | PostgreSQL 접속 사용자명 |
+| `RDS_POSTGRES_PASSWORD` | PostgreSQL 접속 비밀번호 |
+| `CACHE_VALKEY_PASSWORD` | Valkey(Redis) 접속 비밀번호 |
+| `JWT_PRIVATE_KEY` | JWT 서명에 사용할 비밀키 |
+
+> **참고1**: `.env` 파일은 `.gitignore`에 포함되어 있으므로 저장소에 커밋되지 않습니다. 팀원에게 별도로 공유받으세요.
+> 
+> **참고2**: 인텔리제이 프로젝트 실행 시 `.env` 파일 인식에 실패할 경우, Run/Debug Configurations에서 "Environment variables" 항목에 `.env` 파일 경로를 추가해주면 됩니다.
+
 ### 1. 인프라 실행 (PostgreSQL, Redis)
 
 ```bash

@@ -1,5 +1,7 @@
 package com.toy.cnr.domain.common;
 
+import lombok.Builder;
+
 import java.util.List;
 import java.util.function.Function;
 
@@ -75,6 +77,7 @@ public sealed interface CommandResult<T>
      * @param data    결과 데이터
      * @param message 성공 메시지 (선택적, null 가능)
      */
+    @Builder
     record Success<T>(T data, String message) implements CommandResult<T> {}
 
     /**
@@ -82,6 +85,7 @@ public sealed interface CommandResult<T>
      *
      * @param errors 검증 오류 목록
      */
+    @Builder
     record ValidationError<T>(List<String> errors) implements CommandResult<T> {}
 
     /**
@@ -89,5 +93,6 @@ public sealed interface CommandResult<T>
      *
      * @param reason 실패 사유
      */
+    @Builder
     record BusinessError<T>(String reason) implements CommandResult<T> {}
 }
