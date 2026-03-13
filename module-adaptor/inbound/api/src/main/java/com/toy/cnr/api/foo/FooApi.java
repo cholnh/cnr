@@ -5,6 +5,7 @@ import com.toy.cnr.api.foo.request.FooCreateRequest;
 import com.toy.cnr.api.foo.request.FooUpdateRequest;
 import com.toy.cnr.api.foo.response.FooResponse;
 import com.toy.cnr.api.foo.usecase.FooUseCase;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
