@@ -13,6 +13,11 @@
 | Phase 7 | Game Action API | ✅ 완료 |
 | Phase 8 | GameEvent 확장 | ✅ 완료 |
 | Phase 9 | Gem API | ✅ 완료 |
+| Phase 10 | Port (GameTimerPort, GameRegistryStore) | ✅ 완료 |
+| Phase 11 | Application (PolygonUtils, LocationService 수정, GameTimerService, GemSpawnService 확장, GameActionService 수정) | ✅ 완료 |
+| Phase 12 | Cache (GameRegistryRedisStore, GameKey 수정) | ✅ 완료 |
+| Phase 13 | Batch (SpringGameTimerAdapter, GemSpawnScheduler, SchedulerConfig) | ✅ 완료 |
+| Phase 14 | Build config (bootstrap에 batch 추가) | ✅ 완료 |
 
 ---
 

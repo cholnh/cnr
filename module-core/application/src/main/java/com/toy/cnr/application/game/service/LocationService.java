@@ -1,14 +1,18 @@
 package com.toy.cnr.application.game.service;
 
-import com.toy.cnr.application.common.ResultMapper;
 import com.toy.cnr.application.game.mapper.LocationMapper;
+import com.toy.cnr.application.game.util.PolygonUtils;
+import com.toy.cnr.application.common.ResultMapper;
 import com.toy.cnr.domain.common.CommandResult;
+import com.toy.cnr.domain.game.GameEvent;
 import com.toy.cnr.domain.game.LocationPublishCommand;
 import com.toy.cnr.domain.game.PlayerLocation;
-import com.toy.cnr.port.game.LocationPublisher;
-import com.toy.cnr.port.game.LocationStore;
-import com.toy.cnr.port.game.LocationSubscriber;
-import com.toy.cnr.port.game.model.LocationDto;
+import com.toy.cnr.domain.game.PlayerStatus;
+import com.toy.cnr.domain.room.GeoPoint;
+import com.toy.cnr.port.common.RepositoryResult;
+import com.toy.cnr.port.game.*;
+import com.toy.cnr.port.game.model.GameStateDto;
+import com.toy.cnr.port.game.model.InGamePlayerDto;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,8 +21,10 @@ import java.util.function.Consumer;
 /**
  * 좌표 발행/구독 서비스.
  * <p>
- * LocationStore(GeoHash), LocationPublisher(Pub/Sub PUBLISH),
- * LocationSubscriber(Pub/Sub SUBSCRIBE) 포트를 사용합니다.
+ * LocationStore(GeoHash), LocationPublisher(Pub/Sub), LocationSubscriber 포트를 사용합니다.
+ * <p>
+ * 체포된 플레이어가 위치를 업데이트할 때 감옥 폴리곤 이탈 여부를 실시간으로 감지하여
+ * {@link GameEvent.PrisonEscapeWarning} 이벤트를 발행합니다.
  */
 @Service
 public class LocationService {
@@ -26,19 +32,29 @@ public class LocationService {
     private final LocationStore locationStore;
     private final LocationPublisher locationPublisher;
     private final LocationSubscriber locationSubscriber;
+    private final InGamePlayerStore inGamePlayerStore;
+    private final GameStateStore gameStateStore;
+    private final GameEventService gameEventService;
 
     public LocationService(
         LocationStore locationStore,
         LocationPublisher locationPublisher,
-        LocationSubscriber locationSubscriber
+        LocationSubscriber locationSubscriber,
+        InGamePlayerStore inGamePlayerStore,
+        GameStateStore gameStateStore,
+        GameEventService gameEventService
     ) {
         this.locationStore = locationStore;
         this.locationPublisher = locationPublisher;
         this.locationSubscriber = locationSubscriber;
+        this.inGamePlayerStore = inGamePlayerStore;
+        this.gameStateStore = gameStateStore;
+        this.gameEventService = gameEventService;
     }
 
     /**
      * 플레이어 좌표를 GeoHash에 저장하고 Pub/Sub으로 발행합니다.
+     * 체포 상태의 플레이어는 감옥 폴리곤 이탈 여부를 추가로 검사합니다.
      */
     public CommandResult<PlayerLocation> publishLocation(LocationPublishCommand command) {
         long timestamp = System.currentTimeMillis();
@@ -54,16 +70,13 @@ public class LocationService {
             .map(unused -> {
                 var dto = LocationMapper.toDto(command, timestamp);
                 locationPublisher.publish(command.gameId(), command.playerId(), dto);
+                checkPrisonEscape(command.gameId(), command.playerId(), command.latitude(), command.longitude());
                 return LocationMapper.fromCommand(command, timestamp);
             });
     }
 
     /**
      * 여러 플레이어의 좌표 채널을 구독합니다.
-     *
-     * @param gameId     게임 세션 ID
-     * @param playerIds  구독할 플레이어 ID 목록
-     * @param onLocation 좌표 수신 시 호출되는 콜백 (도메인 모델 전달)
      */
     public void subscribe(
         String gameId,
@@ -83,6 +96,40 @@ public class LocationService {
     public void unsubscribe(String gameId, List<String> playerIds) {
         for (var playerId : playerIds) {
             locationSubscriber.unsubscribe(gameId, playerId);
+        }
+    }
+
+    /**
+     * 체포된 플레이어의 위치가 감옥 폴리곤을 벗어났는지 검사합니다.
+     * 이탈 감지 시 PrisonEscapeWarning 이벤트를 SSE 스트림으로 발행합니다.
+     */
+    private void checkPrisonEscape(String gameId, String playerId, double lat, double lon) {
+        var playerResult = inGamePlayerStore.getPlayer(gameId, playerId);
+        if (!(playerResult instanceof RepositoryResult.Found<InGamePlayerDto> playerFound)) {
+            return;
+        }
+        if (!playerFound.data().status().equals(PlayerStatus.ARRESTED.name())) {
+            return;
+        }
+
+        var stateResult = gameStateStore.getGameState(gameId);
+        if (!(stateResult instanceof RepositoryResult.Found<GameStateDto> stateFound)) {
+            return;
+        }
+
+        var settings = stateFound.data().settings();
+        if (settings == null || settings.prisonArea() == null || settings.prisonArea().isEmpty()) {
+            return;
+        }
+
+        List<GeoPoint> prisonArea = settings.prisonArea().stream()
+            .map(p -> new GeoPoint(p.latitude(), p.longitude()))
+            .toList();
+
+        if (!PolygonUtils.contains(prisonArea, lat, lon)) {
+            gameEventService.publish(new GameEvent.PrisonEscapeWarning(
+                gameId, playerId, System.currentTimeMillis()
+            ));
         }
     }
 }

@@ -8,6 +8,7 @@ import com.toy.cnr.domain.common.CommandResult;
 import com.toy.cnr.domain.game.*;
 import com.toy.cnr.domain.room.RoomPlayer;
 import com.toy.cnr.domain.room.RoomSettings;
+import com.toy.cnr.domain.room.GeoPoint;
 import com.toy.cnr.port.game.*;
 import com.toy.cnr.port.game.model.GameStateDto;
 import com.toy.cnr.port.game.model.InGamePlayerDto;
@@ -31,19 +32,28 @@ public class GameActionService {
     private final GemStore gemStore;
     private final LocationStore locationStore;
     private final GameEventService gameEventService;
+    private final GameRegistryStore gameRegistryStore;
+    private final GameTimerService gameTimerService;
+    private final GemSpawnService gemSpawnService;
 
     public GameActionService(
         GameStateStore gameStateStore,
         InGamePlayerStore inGamePlayerStore,
         GemStore gemStore,
         LocationStore locationStore,
-        GameEventService gameEventService
+        GameEventService gameEventService,
+        GameRegistryStore gameRegistryStore,
+        GameTimerService gameTimerService,
+        GemSpawnService gemSpawnService
     ) {
         this.gameStateStore = gameStateStore;
         this.inGamePlayerStore = inGamePlayerStore;
         this.gemStore = gemStore;
         this.locationStore = locationStore;
         this.gameEventService = gameEventService;
+        this.gameRegistryStore = gameRegistryStore;
+        this.gameTimerService = gameTimerService;
+        this.gemSpawnService = gemSpawnService;
     }
 
     /**
@@ -90,6 +100,20 @@ public class GameActionService {
 
         // Publish game started event
         gameEventService.publish(new GameEvent.GameStarted(gameId, now));
+
+        // Register in active game registry
+        gameRegistryStore.register(gameId);
+
+        // Schedule lifecycle timers
+        long escapeMs = (long) settings.escapeTimeMinutes() * 60 * 1000;
+        long totalMs = (long) settings.gameDurationMinutes() * 60 * 1000;
+        gameTimerService.scheduleGame(gameId, escapeMs, totalMs);
+
+        // Spawn initial gems inside playArea polygon
+        var playArea = settings.mapZone() != null ? settings.mapZone().playArea() : null;
+        if (playArea != null && !playArea.isEmpty()) {
+            gemSpawnService.spawnInitialGems(gameId, playArea);
+        }
 
         return new CommandResult.Success<>(gameId, "Game started");
     }
@@ -329,10 +353,7 @@ public class GameActionService {
             .allMatch(p -> p.status().equals(PlayerStatus.ARRESTED.name()));
 
         if (allRobbersArrested) {
-            gameStateStore.updateStatus(gameId, GameStatus.ENDED.name());
-            gameEventService.publish(new GameEvent.GameEnded(
-                gameId, PlayerRole.COPS.name(), System.currentTimeMillis()
-            ));
+            gameTimerService.endGame(gameId, PlayerRole.COPS.name());
         }
     }
 

@@ -7,6 +7,8 @@ bootJar { enabled = false }
 jar { enabled = true }
 
 dependencies {
+    implementation project(':module-core:domain')
+    implementation project(':module-core:port')
     implementation project(':module-core:application')
 
     implementation 'org.springframework.boot:spring-boot-starter-batch'

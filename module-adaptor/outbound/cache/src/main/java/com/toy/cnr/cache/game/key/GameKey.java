@@ -50,6 +50,11 @@ public class GameKey {
         return "game:" + gameId + ":pings";
     }
 
+    // Active game registry
+    public static String activeGames() {
+        return "game:active";
+    }
+
     public static String generateSubscriberId(String gameId) {
         return gameId + ":" + UUID.randomUUID();
     }
