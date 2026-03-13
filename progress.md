@@ -1,83 +1,171 @@
-# OAuth2 구현 진행 상황
+# CNR Game API 구현 진행상황
 
-## ✅ 전체 완료 (빌드 성공)
+## 전체 Phase 현황
 
-### Phase 1 — Domain ✅
-- `User.java`: `password` 제거, `name` + `createdAt` 추가
-- `UserAuthOAuth.java`: 신규 생성
-
-### Phase 2 — Port ✅
-- `UserDto.java`: `password` 제거, `name` + `createdAt` 추가
-- `UserRepository.java`: `save(UserCreateDto)` 메서드 추가
-- `UserCreateDto.java`: 신규 생성
-- `UserAuthLocalDto.java`: 신규 생성
-- `UserAuthOAuthDto.java`: 신규 생성
-- `UserAuthOAuthCreateDto.java`: 신규 생성
-- `UserAuthLocalRepository.java`: 신규 생성
-- `UserAuthOAuthRepository.java`: 신규 생성
-- `OAuthProviderRepository.java`: 신규 생성
-- `OAuthUserInfoDto.java`: 신규 생성
-
-### Phase 3 — Application ✅
-- `UserService.java`: `findOrCreateByOAuth()` 추가, `findByEmail()` 반환값 수정
-- `UserAuthLocalService.java`: 신규 생성
-- `OAuthUserService.java`: 신규 생성
-
-### Phase 4 — RDS ✅
-- `UserEntity.java`: 테이블명 `user_entity` → `users`, `password` 제거, `name` + `createdAt` 추가
-- `UserRepositoryImpl.java`: `save()` 구현 추가
-- `UserAuthLocalEntity.java`: 신규 생성
-- `UserAuthOAuthEntity.java`: 신규 생성
-- `UserAuthLocalJpaRepository.java`: 신규 생성
-- `UserAuthOAuthJpaRepository.java`: 신규 생성
-- `UserAuthLocalRepositoryImpl.java`: 신규 생성
-- `UserAuthOAuthRepositoryImpl.java`: 신규 생성
-
-### Phase 5 — External ✅
-- `module-adaptor/outbound/external/kakao-oauth-client/` 서브모듈 신규 생성
-- `build.gradle`: Spring Boot + Web 의존성 (`bootJar disabled`)
-- `KakaoOAuthProviderRepositoryImpl.java`: RestClient로 카카오 토큰/유저정보 호출
-- `application-kakao-oauth.yml`: 카카오 API URL + 클라이언트 설정
-- `settings.gradle`: `kakao-oauth-client` 서브모듈 등록
-
-### Phase 6 — Security ✅
-- `OAuthToken.java`: `UnAuthentication` 상속, provider/code 보관
-- `OAuthUserLoaderService.java`: port interface 신규 생성
-- `OAuthAuthenticationConverter.java`: JSON body `{provider, code}` 파싱
-- `OAuthAuthenticationProvider.java`: OAuthToken → BearerAuthenticationToken 발급
-- `OAuthAuthenticationFilter.java`: `UserAuthenticationFilter` 상속, `/v1/auth/oauth` path 처리
-- `UserAuthenticationFilter.java`: `pathMatcher` 접근제어자 `private` → `protected` 변경
-- `SecurityConfiguration.java`: `oAuthAuthenticationFilter` 필터 체인에 추가
-- `application-security.yml`: `security.oauth` 설정 및 `/v1/auth/oauth` permitMatcher 추가
-
-### Phase 7 — API ✅
-- `SecurityUserLoaderServiceAdaptor.java`: `UserAuthLocalService` 추가 주입 (password hash 분리 조회)
-- `OAuthUserLoaderServiceAdaptor.java`: 신규 생성 (`OAuthUserService` 호출)
-
-### Phase 8 — Bootstrap ✅
-- `build.gradle`: `kakao-oauth-client` 의존성 추가
-- `application.yml`: `application-kakao-oauth.yml` import 추가
+| Phase | 내용 | 상태 |
+|-------|------|------|
+| Phase 1 | Domain models (room/ + game/ 확장) | ✅ 완료 |
+| Phase 2 | Port interfaces + DTOs | ✅ 완료 |
+| Phase 3 | Cache layer (Redis 구현체 + GameKey) | ✅ 완료 |
+| Phase 4 | Application services + Mappers | ✅ 완료 |
+| Phase 5 | Room API | ✅ 완료 |
+| Phase 6 | Game State API | ✅ 완료 |
+| Phase 7 | Game Action API | ✅ 완료 |
+| Phase 8 | GameEvent 확장 | ✅ 완료 |
+| Phase 9 | Gem API | ✅ 완료 |
 
 ---
 
-## 다음 단계 (직접 실행 필요)
+## Phase 1 — Domain models
 
-```bash
-# 1. DB 재시작 (테이블 구조 변경으로 필수)
-docker compose -f docker/docker-compose.yml down -v && docker compose -f docker/docker-compose.yml up -d
+### Room domain (`module-core/domain/.../domain/room/`)
 
-# 2. 앱 실행
-./gradlew :module-bootstrap:bootRun
+| 파일 | 상태 |
+|------|------|
+| `GeoPoint.java` | ⬜ |
+| `GameMode.java` | ⬜ |
+| `RoomStatus.java` | ⬜ |
+| `MapZone.java` | ⬜ |
+| `RoomSettings.java` | ⬜ |
+| `RoomPlayer.java` | ⬜ |
+| `Room.java` | ⬜ |
+| `RoomCreateCommand.java` | ⬜ |
+| `RoomUpdateSettingsCommand.java` | ⬜ |
+| `RoomJoinCommand.java` | ⬜ |
+| `RoomLeaveCommand.java` | ⬜ |
+| `GameStartCommand.java` | ⬜ |
 
-# 3. 로컬 로그인 확인 (기존 동작)
-POST /v1/auth/token  email=... password=...
+### Game domain 확장 (`module-core/domain/.../domain/game/`)
 
-# 4. OAuth 로그인 확인
-POST /v1/auth/oauth
-Content-Type: application/json
-{"provider": "kakao", "code": "<실제 카카오 code>"}
-```
+| 파일 | 상태 |
+|------|------|
+| `PlayerRole.java` | ⬜ |
+| `PlayerStatus.java` | ⬜ |
+| `GameStatus.java` | ⬜ |
+| `GemStatus.java` | ⬜ |
+| `PingType.java` | ⬜ |
+| `PlayerStats.java` | ⬜ |
+| `InGamePlayer.java` | ⬜ |
+| `GameState.java` | ⬜ |
+| `Gem.java` | ⬜ |
+| `ArrestCommand.java` | ⬜ |
+| `RescueCommand.java` | ⬜ |
+| `CollectGemCommand.java` | ⬜ |
+| `SendPingCommand.java` | ⬜ |
+| `GameEvent.java` (GemCollected, GemSpawned, PingAlert 추가) | ⬜ |
 
-## 환경변수 설정 필요
-- `KAKAO_CLIENT_ID`: 카카오 앱 클라이언트 ID
-- `KAKAO_REDIRECT_URI`: 카카오 앱 등록 redirect URI
+---
+
+## Phase 2 — Port interfaces + DTOs
+
+### Room port (`module-core/port/.../port/room/`)
+
+| 파일 | 상태 |
+|------|------|
+| `RoomStore.java` | ⬜ |
+| `model/RoomDto.java` | ⬜ |
+| `model/RoomPlayerDto.java` | ⬜ |
+| `model/RoomSettingsDto.java` | ⬜ |
+
+### Game port 확장 (`module-core/port/.../port/game/`)
+
+| 파일 | 상태 |
+|------|------|
+| `GameStateStore.java` | ⬜ |
+| `InGamePlayerStore.java` | ⬜ |
+| `GemStore.java` | ⬜ |
+| `model/GameStateDto.java` | ⬜ |
+| `model/InGamePlayerDto.java` | ⬜ |
+| `model/GemDto.java` | ⬜ |
+
+---
+
+## Phase 3 — Cache layer
+
+| 파일 | 상태 |
+|------|------|
+| `cache/game/RoomRedisStore.java` | ⬜ |
+| `cache/game/GameStateRedisStore.java` | ⬜ |
+| `cache/game/InGamePlayerRedisStore.java` | ⬜ |
+| `cache/game/GemRedisStore.java` | ⬜ |
+| `cache/game/key/GameKey.java` (수정) | ⬜ |
+
+---
+
+## Phase 4 — Application services + Mappers
+
+| 파일 | 상태 |
+|------|------|
+| `application/room/service/RoomService.java` | ⬜ |
+| `application/room/mapper/RoomMapper.java` | ⬜ |
+| `application/game/service/GameActionService.java` | ⬜ |
+| `application/game/service/GameStateService.java` | ⬜ |
+| `application/game/service/GemService.java` | ⬜ |
+| `application/game/mapper/GameStateMapper.java` | ⬜ |
+| `application/game/mapper/InGamePlayerMapper.java` | ⬜ |
+| `application/game/mapper/GemMapper.java` | ⬜ |
+| `application/game/mapper/GameEventMapper.java` (수정) | ⬜ |
+
+---
+
+## Phase 5 — Room API
+
+| 파일 | 상태 |
+|------|------|
+| `api/room/RoomApi.java` | ⬜ |
+| `api/room/RoomUseCase.java` | ⬜ |
+| `api/room/request/RoomCreateRequest.java` | ⬜ |
+| `api/room/request/RoomUpdateSettingsRequest.java` | ⬜ |
+| `api/room/request/RoomJoinRequest.java` | ⬜ |
+| `api/room/request/RoomLeaveRequest.java` | ⬜ |
+| `api/room/request/GameStartRequest.java` | ⬜ |
+| `api/room/response/RoomResponse.java` | ⬜ |
+| `api/room/response/RoomDetailResponse.java` | ⬜ |
+| `api/room/response/RoomPlayerResponse.java` | ⬜ |
+| `api/room/response/RoomPlayersResponse.java` | ⬜ |
+
+---
+
+## Phase 6 — Game State API
+
+| 파일 | 상태 |
+|------|------|
+| `api/game/GameStateApi.java` | ⬜ |
+| `api/game/usecase/GameStateUseCase.java` | ⬜ |
+| `api/game/response/GameStateResponse.java` | ⬜ |
+| `api/game/response/InGamePlayerResponse.java` | ⬜ |
+| `api/game/response/InGamePlayersResponse.java` | ⬜ |
+| `api/game/response/GameResultResponse.java` | ⬜ |
+
+---
+
+## Phase 7 — Game Action API
+
+| 파일 | 상태 |
+|------|------|
+| `api/game/GameActionApi.java` | ⬜ |
+| `api/game/usecase/GameActionUseCase.java` | ⬜ |
+| `api/game/request/ArrestRequest.java` | ⬜ |
+| `api/game/request/RescueRequest.java` | ⬜ |
+| `api/game/request/CollectGemRequest.java` | ⬜ |
+| `api/game/request/SendPingRequest.java` | ⬜ |
+
+---
+
+## Phase 8 — GameEvent 확장
+
+| 파일 | 상태 |
+|------|------|
+| `api/game/response/GameEventResponse.java` (수정) | ⬜ |
+| `application/game/mapper/GameEventMapper.java` (수정) | ⬜ |
+
+---
+
+## Phase 9 — Gem API
+
+| 파일 | 상태 |
+|------|------|
+| `api/game/GameGemApi.java` | ⬜ |
+| `api/game/usecase/GameGemUseCase.java` | ⬜ |
+| `api/game/response/GemResponse.java` | ⬜ |
+| `api/game/response/GemsResponse.java` | ⬜ |

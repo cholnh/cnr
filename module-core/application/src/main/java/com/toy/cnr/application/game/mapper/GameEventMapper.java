@@ -47,6 +47,30 @@ public final class GameEventMapper {
                 Map.of("playerId", e.playerId(), "role", e.role()),
                 e.timestamp()
             );
+            case GameEvent.GemCollected e -> new GameEventDto(
+                e.gameId(), "GEM_COLLECTED",
+                Map.of("robberId", e.robberId(), "gemId", e.gemId()),
+                e.timestamp()
+            );
+            case GameEvent.GemSpawned e -> new GameEventDto(
+                e.gameId(), "GEM_SPAWNED",
+                Map.of(
+                    "gemId", e.gemId(),
+                    "latitude", String.valueOf(e.latitude()),
+                    "longitude", String.valueOf(e.longitude())
+                ),
+                e.timestamp()
+            );
+            case GameEvent.PingAlert e -> new GameEventDto(
+                e.gameId(), "PING_ALERT",
+                Map.of(
+                    "senderId", e.senderId(),
+                    "pingType", e.pingType(),
+                    "latitude", String.valueOf(e.latitude()),
+                    "longitude", String.valueOf(e.longitude())
+                ),
+                e.timestamp()
+            );
         };
     }
 
@@ -89,6 +113,27 @@ public final class GameEventMapper {
                 dto.gameId(),
                 dto.data().get("playerId"),
                 dto.data().get("role"),
+                dto.timestamp()
+            );
+            case "GEM_COLLECTED" -> new GameEvent.GemCollected(
+                dto.gameId(),
+                dto.data().get("robberId"),
+                dto.data().get("gemId"),
+                dto.timestamp()
+            );
+            case "GEM_SPAWNED" -> new GameEvent.GemSpawned(
+                dto.gameId(),
+                dto.data().get("gemId"),
+                Double.parseDouble(dto.data().get("latitude")),
+                Double.parseDouble(dto.data().get("longitude")),
+                dto.timestamp()
+            );
+            case "PING_ALERT" -> new GameEvent.PingAlert(
+                dto.gameId(),
+                dto.data().get("senderId"),
+                dto.data().get("pingType"),
+                Double.parseDouble(dto.data().get("latitude")),
+                Double.parseDouble(dto.data().get("longitude")),
                 dto.timestamp()
             );
             default -> throw new IllegalArgumentException("Unknown game event type: " + dto.type());

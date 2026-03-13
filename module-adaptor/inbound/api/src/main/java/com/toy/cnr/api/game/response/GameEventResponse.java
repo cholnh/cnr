@@ -20,7 +20,10 @@ public record GameEventResponse(
             "ANNOUNCEMENT",
             "GAME_STARTED",
             "GAME_ENDED",
-            "ROLE_ASSIGNED"
+            "ROLE_ASSIGNED",
+            "GEM_COLLECTED",
+            "GEM_SPAWNED",
+            "PING_ALERT"
         }
     )
     String type,
@@ -66,6 +69,30 @@ public record GameEventResponse(
             case GameEvent.RoleAssigned e -> new GameEventResponse(
                 e.gameId(), "ROLE_ASSIGNED",
                 Map.of("playerId", e.playerId(), "role", e.role()),
+                e.timestamp()
+            );
+            case GameEvent.GemCollected e -> new GameEventResponse(
+                e.gameId(), "GEM_COLLECTED",
+                Map.of("robberId", e.robberId(), "gemId", e.gemId()),
+                e.timestamp()
+            );
+            case GameEvent.GemSpawned e -> new GameEventResponse(
+                e.gameId(), "GEM_SPAWNED",
+                Map.of(
+                    "gemId", e.gemId(),
+                    "latitude", String.valueOf(e.latitude()),
+                    "longitude", String.valueOf(e.longitude())
+                ),
+                e.timestamp()
+            );
+            case GameEvent.PingAlert e -> new GameEventResponse(
+                e.gameId(), "PING_ALERT",
+                Map.of(
+                    "senderId", e.senderId(),
+                    "pingType", e.pingType(),
+                    "latitude", String.valueOf(e.latitude()),
+                    "longitude", String.valueOf(e.longitude())
+                ),
                 e.timestamp()
             );
         };

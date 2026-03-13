@@ -7,16 +7,47 @@ import java.util.UUID;
 @UtilityClass
 public class GameKey {
 
+    // Location
     public static String location(String gameId, String playerId) {
         return "game:" + gameId + ":player:" + playerId + ":location";
     }
 
+    public static String locations(String gameId) {
+        return "game:" + gameId + ":locations";
+    }
+
+    // Game events
     public static String events(String gameId) {
         return "game:" + gameId + ":events";
     }
 
-    public static String locations(String gameId) {
-        return "game:" + gameId + ":locations";
+    // Game state
+    public static String gameState(String gameId) {
+        return "game:" + gameId + ":state";
+    }
+
+    // InGame players
+    public static String gamePlayers(String gameId) {
+        return "game:" + gameId + ":players";
+    }
+
+    // Gems
+    public static String gameGems(String gameId) {
+        return "game:" + gameId + ":gems";
+    }
+
+    // Room
+    public static String room(String roomId) {
+        return "room:" + roomId;
+    }
+
+    public static String roomPlayers(String roomId) {
+        return "room:" + roomId + ":players";
+    }
+
+    // Pings (Pub/Sub)
+    public static String gamePings(String gameId) {
+        return "game:" + gameId + ":pings";
     }
 
     public static String generateSubscriberId(String gameId) {

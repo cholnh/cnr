@@ -12,7 +12,10 @@ public sealed interface GameEvent
             GameEvent.Announcement,
             GameEvent.GameStarted,
             GameEvent.GameEnded,
-            GameEvent.RoleAssigned
+            GameEvent.RoleAssigned,
+            GameEvent.GemCollected,
+            GameEvent.GemSpawned,
+            GameEvent.PingAlert
 {
     String gameId();
     long timestamp();
@@ -66,6 +69,33 @@ public sealed interface GameEvent
         String gameId,
         String playerId,
         String role,
+        long timestamp
+    ) implements GameEvent {}
+
+    /** 도둑이 보석 획득 */
+    record GemCollected(
+        String gameId,
+        String robberId,
+        String gemId,
+        long timestamp
+    ) implements GameEvent {}
+
+    /** 보석 스폰 (도둑에게만 노출) */
+    record GemSpawned(
+        String gameId,
+        String gemId,
+        double latitude,
+        double longitude,
+        long timestamp
+    ) implements GameEvent {}
+
+    /** 인게임 핑/알람 */
+    record PingAlert(
+        String gameId,
+        String senderId,
+        String pingType,
+        double latitude,
+        double longitude,
         long timestamp
     ) implements GameEvent {}
 }

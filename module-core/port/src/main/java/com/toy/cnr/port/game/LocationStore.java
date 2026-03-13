@@ -24,4 +24,9 @@ public interface LocationStore {
      * 플레이어 좌표를 조회합니다.
      */
     RepositoryResult<LocationDto> getLocation(String gameId, String playerId);
+
+    /**
+     * 두 플레이어 사이의 거리를 미터 단위로 계산합니다 (Redis GEODIST).
+     */
+    RepositoryResult<Double> getDistanceMeters(String gameId, String playerId1, String playerId2);
 }

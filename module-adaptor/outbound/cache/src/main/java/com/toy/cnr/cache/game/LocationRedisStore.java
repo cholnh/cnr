@@ -4,7 +4,9 @@ import com.toy.cnr.cache.game.key.GameKey;
 import com.toy.cnr.port.common.RepositoryResult;
 import com.toy.cnr.port.game.LocationStore;
 import com.toy.cnr.port.game.model.LocationDto;
+import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Point;
+import org.springframework.data.redis.domain.geo.Metrics;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -59,6 +61,22 @@ public class LocationRedisStore implements LocationStore {
                 point.getY(),
                 System.currentTimeMillis()
             ));
+        } catch (Exception e) {
+            return new RepositoryResult.Error<>(e);
+        }
+    }
+
+    @Override
+    public RepositoryResult<Double> getDistanceMeters(String gameId, String playerId1, String playerId2) {
+        try {
+            var key = GameKey.locations(gameId);
+            Distance distance = redisTemplate.opsForGeo().distance(key, playerId1, playerId2, Metrics.METERS);
+            if (distance == null) {
+                return new RepositoryResult.NotFound<>(
+                    "Location not found for one of the players: " + playerId1 + ", " + playerId2
+                );
+            }
+            return new RepositoryResult.Found<>(distance.getValue());
         } catch (Exception e) {
             return new RepositoryResult.Error<>(e);
         }
