@@ -344,3 +344,20 @@ public class FooQueryService {
 3. `Wrapping and Braces` → `Hard wrap at: 120`
 4. `Method declaration parameters` → `Wrap if long` 선택
 5. `Align when multiline` 체크
+
+## Package & Naming Conventions
+
+Base package: `com.toy.cnr`
+
+| Module | Package | Key class patterns |
+|--------|---------|-------------------|
+| `module-core:domain` | `.domain.<name>` | `<Name>` (record), `<Name>CreateCommand`, `<Name>UpdateCommand` |
+| `module-core:application` | `.application.<name>` | `<Name>QueryService` (`@Service`), `<Name>Mapper` (`@UtilityClass`) |
+| `module-core:port` | `.port.<name>` | `<Name>Repository` (interface), `<Name>Dto`, `<Name>CreateDto`, `<Name>UpdateDto` |
+| `module-adaptor:inbound:api` | `.api.<name>` | `<Name>Api` (`@RestController`), `<Name>UseCase` (`@Component`), `<Name>CreateRequest`, `<Name>Response` |
+| `module-adaptor:outbound:rds` | `.rds.<name>` | `<Name>Entity`, `<Name>RepositoryImpl` (`@Repository`) |
+| `module-adaptor:outbound:external` | `.external.<name>` | `<Name>FeignClient`, `<Name>ExternalRepository` |
+
+**Responsibility split (api layer):**
+- `UseCase` — business orchestration, returns `CommandResult<*Response>` (no HTTP concerns)
+- `*Api` — HTTP concerns only, converts `CommandResult` → `ResponseEntity` via switch pattern matching

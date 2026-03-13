@@ -2,83 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Commands
-
-```bash
-# Build
-./gradlew build
-./gradlew :module-bootstrap:bootJar
-
-# Run
-./gradlew :module-bootstrap:bootRun
-
-# Test
-./gradlew test
-./gradlew :module-core:test   # single module
-
-# Docker (local infra)
-docker compose -f docker/docker-compose.yml up -d
-docker compose -f docker/docker-compose.yml down -v
-```
-
-Swagger UI: `http://localhost:8080/swagger-ui/index.html`
-
-## Architecture
-
-Hexagonal Architecture (Ports & Adapters) multi-module Gradle project.
-
-**Dependency direction (one-way):**
-```
-module-adaptor → module-core:port → module-core:application → module-core:domain
-```
-
-`module-core:domain` has **zero** framework dependencies — pure Java.
-
-**Module roles:**
-- `module-bootstrap` — Spring Boot entry point, application config
-- `module-core/domain` — Domain models and business rules (pure Java)
-- `module-core/application` — Application services, orchestration, mappers
-- `module-core/port` — Repository/service interface contracts and DTOs
-- `module-adaptor/inbound/api` — REST controllers (`*Api`) and use case orchestrators (`*UseCase`)
-- `module-adaptor/outbound/rds` — JPA entities and `*RepositoryImpl`
-- `module-adaptor/outbound/cache` — Redis configuration
-- `module-adaptor/outbound/external` — OpenFeign clients
-
-**Error handling pattern — sealed types:**
-- `CommandResult<T>`: `Success` / `ValidationError` / `BusinessError` (domain layer)
-- `RepositoryResult<T>`: `Found` / `NotFound` / `Error` (port layer)
-- `ApiError`: `NotFound` / `BadRequest` / `InternalError` (API layer)
-
-## Spring Profiles
-
-- `local` — PostgreSQL on localhost:5432, `ddl-auto=update`, debug logging
-- `prod` — Supabase PostgreSQL, Aiven Valkey, `ddl-auto=validate`
-
 ## Code Style (from `(rules) code-convention.md`)
 
-- 4-space indentation, max 120 characters per line
-- When parameters exceed 120 chars, each parameter goes on its own line with closing `)` on a separate line
-- Opening `{` stays on the same line; annotations each get their own line
-- Long method chains: each `.method()` call on its own line
-- Constructor injection only (no field injection)
-- Use `var` for local variable type inference where type is obvious
+## Architecture (from `(rules) architecture.md`)
 
-## Package & Naming Conventions
+### Data structure
 
-Base package: `com.toy.cnr`
+- 유저 정보와 같이 중요한 정보는 db(rdb)에 저장
+- 인게임 정보들, 메타 정보들은 모두 redis에 저장
 
-| Module | Package | Key class patterns |
-|--------|---------|-------------------|
-| `module-core:domain` | `.domain.<name>` | `<Name>` (record), `<Name>CreateCommand`, `<Name>UpdateCommand` |
-| `module-core:application` | `.application.<name>` | `<Name>QueryService` (`@Service`), `<Name>Mapper` (`@UtilityClass`) |
-| `module-core:port` | `.port.<name>` | `<Name>Repository` (interface), `<Name>Dto`, `<Name>CreateDto`, `<Name>UpdateDto` |
-| `module-adaptor:inbound:api` | `.api.<name>` | `<Name>Api` (`@RestController`), `<Name>UseCase` (`@Component`), `<Name>CreateRequest`, `<Name>Response` |
-| `module-adaptor:outbound:rds` | `.rds.<name>` | `<Name>Entity`, `<Name>RepositoryImpl` (`@Repository`) |
-| `module-adaptor:outbound:external` | `.external.<name>` | `<Name>FeignClient`, `<Name>ExternalRepository` |
-
-**Responsibility split (api layer):**
-- `UseCase` — business orchestration, returns `CommandResult<*Response>` (no HTTP concerns)
-- `*Api` — HTTP concerns only, converts `CommandResult` → `ResponseEntity` via switch pattern matching
+## Profile (from `(rules) profile.md`)
 
 ## Module README Reference
 
@@ -95,3 +28,106 @@ Read the relevant README when working on that layer (on-demand, not auto-loaded)
 | Batch jobs | `module-adaptor/inbound/batch/README.md` |
 | Event listeners | `module-adaptor/inbound/event/README.md` |
 | Bootstrap / app config | `module-bootstrap/README.md` |
+
+
+## Game Introduction
+
+경찰과 도둑이 서로의 위치(geoLocation)를 추적하는 게임입니다. 경찰은 도둑의 위치를 추적하여 체포하려고 하고, 도둑은 경찰의 위치를 피하려고 합니다. 게임은 실시간으로 진행되며, 플레이어는 자신의 위치를 업데이트하고 상대방의 위치를 확인할 수 있습니다. 경찰이 도둑을 체포하면 경찰이 승리하고, 도둑이 일정 시간 동안 경찰을 피하면 도둑이 승리합니다.
+
+### 역할
+1. 경찰 (COPS): 도둑의 위치를 추적하여 체포하려는 역할입니다. 경찰은 도둑의 위치를 실시간으로 확인할 수 있으며, 도둑이 일정 범위 내에 들어오면 체포할 수 있습니다.
+2. 도둑 (ROBBERS): 경찰의 위치를 피하려는 역할입니다. 도둑은 경찰의 위치를 실시간으로 확인할 수 있으며, 경찰이 일정 범위 내에 들어오면 도망쳐야 합니다.
+
+### 경찰 승리 조건
+- 경찰이 도둑을 모두 체포하면 경찰이 승리합니다.
+
+### 도둑 승리 조건
+- 도둑이 일정 시간 동안 경찰을 피하면 도둑이 승리합니다. (예: 10분 동안 경찰을 피하면 도둑 승리)
+
+### 게임 규칙
+- 게임은 게임ID 로 구분되는 하나의 단위에서 실시간으로 진행됩니다.
+- 게임에 참여한 플레이어는 게임 시작 후 인게임에서 자신의 역할(경찰 또는 도둑)이 정해집니다.
+- 플레이어는 자신의 위치를 업데이트할 수 있습니다. 위치는 GPS 좌표로 표현됩니다. (예: 위도, 경도)
+- 플레이어는 상대방의 위치를 실시간으로 확인할 수 있습니다. (단, 게임 정책에 따라 상대방의 위치를 확인할 수도 있고 확인할 수 없을 수도 있습니다.)
+- 서로 같은 역할(경찰과 경찰, 도둑과 도둑)끼리는 위치를 확인할 수 있습니다.
+- 좌표는 위도(latitude)와 경도(longitude)로 표현됩니다. (예: 위도 37.7749, 경도 -122.4194)
+- 구역은 폴리곤 형태로 표현됩니다. (예: 집결지, 전체 구역, 감옥 구역, 제한 구역 등) (EPSG:4326 좌표계 사용하나, 게임에서는 GPS 좌표로 표현됩니다. 좌표계는 변경될 수 있습니다.)
+
+#### 경찰 규칙
+- 경찰은 다음과 같은 행동을 할 수 있습니다:
+   - 자신의 위치 업데이트
+   - 도둑 체포 (도둑이 일정 범위 내에 들어왔을 때)
+     - 도둑의 상태가 "체포됨"으로 변경되고, 경찰의 체포 횟수가 증가합니다.
+
+#### 도둑 규칙
+- 도둑은 다음과 같은 행동을 할 수 있습니다:
+   - 자신의 위치 업데이트
+   - 보석 획득 (게임 맵에 랜덤으로 생성되는 보석을 획득하여 점수를 얻음)
+     - 도둑의 점수가 증가합니다.
+     - 일정 시간 동안 보석 위치와 도둑 위치가 일치하면 보석을 획득할 수 있습니다.
+     - 보석을 발견할 경우 도둑의 위치가 경찰에게 노출될 수 있습니다.
+   - 도둑은 체포될 경우 감옥에 갇히게 되며, 감옥 범위를 벗어날 수 없습니다. (만약 도둑이 감옥 범위를 벗어나면 경고 알람을 받습니다. 특정 시간동안 벗어나 있을 경우 게임에서 패배하게 됩니다.)
+   - 체포되지 않은 도둑은 체포된 도둑을 구출할 수 있습니다. (구출 시 체포된 도둑의 상태가 "구출됨"으로 변경됩니다. gps 좌표가 일정 범위 내에 있을 때 구출이 가능합니다.)
+
+### 방(room)
+- 게임 참가자들이 모이는 공간
+
+#### 방 만들기
+
+- 방ID 는 UUID 4글자(영어 대문자, 숫자) 로 구성됩니다. (예: "ABCD")
+- 유저는 방을 만들면 방장이 된다.
+- 초대 코드를 통해 방에 입장할 수 있다. (초대 코드는 방ID로 구성되어 있음.)
+- QR 코드를 통해 방에 입장할 수 있다. (QR 코드에는 방ID가 포함되어 있음.)
+- 방장은 다음과 같은 방 설정 정보를 설정할 수 있다.
+  - 게임 모드 (베이직모드, 좀도둑모드, 테러범모드 등. MVP 모델에서는 베이직 모드만 지원된다.) -> 게임 모드에 따라 게임 규칙이 달라질 수 있음
+  - 참가 최소/최대 인원
+  - 경찰/도둑 비율 (예: 경찰 3명, 도둑 2명)
+  - 게임 시간(단위: 분)
+  - 도둑이 초반에 도망가는 시간(단위: 분)
+  - 맵 구역 설정
+    - 집결지 (포인트)
+    - 전체 구역 (경찰과 도둑이 활동할 수 있는 전체 범위) (폴리곤)
+    - 감옥 구역 (도둑이 체포되었을 때 갇히는 범위) (폴리곤)
+    - 제한 구역 (경찰과 도둑이 출입할 수 없는 범위) (폴리곤)
+- 방장이 게임 시작 버튼을 눌러 시작한다. (최소 인원 이상이 모여야 게임 시작 가능)
+- 역할 랜덤 배정일 경우 경찰/도둑 역할은 게임 시작 시 자동으로 배정됩니다. (추후 방장이 배정하는 기능이 추가될 예정. MVP 모델에서는 랜덤 배정만 지원된다.)
+
+#### 참가하기
+
+- 방ID 또는 초대 코드 또는 QR 코드를 통해 방에 입장할 수 있다.
+- 방에 입장한 플레이어는 대기 상태가 된다. (게임 시작 전까지 대기 상태)
+
+### 인게임
+- 인게임 정보 조회 시 각 플레이어는 자신의 역할과 상태, 성과(예: 잡은 도둑, 훔친 보석 등)를 확인할 수 있다.
+  - 경찰 성과
+    - 남은 도둑 수 / 전체 도둑 수
+    - 자신이 체포한 도둑 수
+    - 회수한 보석 수
+  - 도둑 성과
+    - 남은 도둑 수 / 전체 도둑 수
+    - 자신이 훔친 보석 수
+    - 내 탈옥 횟수
+    - 동료를 구출한 횟수
+- 인게임 시작 시 보석이 게임 맵에 랜덤으로 생성됩니다. (보석은 일정 시간마다 랜덤 위치에 생성되며, 보석의 위치는 도둑에게만 노출됩니다.)
+- 게임 시작 시 플레이어는 자신의 역할(경찰 또는 도둑)이 배정되고, 인게임 상태가 된다.
+- 게임 참가자들이 모여 동일한 규칙으로 플레이하는 논리적 세션
+- 게임 대기 → 인게임 → 종료로 상태 전이
+- 게임 시작 후 플레이어는 자신의 위치를 업데이트할 수 있다. (예: GPS 좌표로 위치 업데이트)
+- 게임 시작 후 플레이어는 상대방의 위치를 확인할 수 있다. (단, 게임 정책에 따라 상대방의 위치를 확인할 수도 있고 확인할 수 없을 수도 있음. 같은 역할끼리는 위치를 확인할 수 있음.)
+- 게임 시작 후 플레이어는 자신의 상태와 성과를 확인할 수 있다. (예: 경찰은 잡은 도둑 수, 도둑은 훔친 보석 수 등)
+- 게임 시작 후 플레이어는 게임 종료 시까지 자신의 역할에 따라 행동할 수 있다. (예: 경찰은 도둑 체포, 도둑은 보석 획득 등)
+- 게임 종료 시 플레이어는 자신의 최종 성과와 승패 결과를 확인할 수 있다. (예: 경찰은 잡은 도둑 수, 도둑은 훔친 보석 수, 승패 결과 등)
+- 게임 종료 후 플레이어는 방을 나갈 수 있다. (게임 중간에 방을 나가면 게임에서 완전히 퇴장하게 됨)
+- 게임 중 특정 좌표로 알람(ping)을 보낼 수 있다. (같은 약할끼리 알람을 확인할 수 있음)
+  - 도둑 알람
+    - 경찰 발견
+    - 위험
+    - 보석 발견
+    - 집결
+    - 도망쳐
+  - 경찰 알람
+    - 도둑 발견
+    - 보석 발견
+    - 지원 요청
+    - 가고 있음
+    - 집결

@@ -10,17 +10,17 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Game 도메인 유즈케이스.
+ * 좌표 발행/구독 유즈케이스.
  * <p>
- * 좌표 발행/구독을 오케스트레이션합니다.
+ * 플레이어 GPS 좌표를 Redis GeoHash에 저장하고 Pub/Sub으로 브로드캐스트합니다.
  * HTTP 관심사({@code SseEmitter}, {@code ResponseEntity})는 Controller가 담당합니다.
  */
 @Component
-public class GameUseCase {
+public class GameLocationUseCase {
 
     private final LocationService locationService;
 
-    public GameUseCase(LocationService locationService) {
+    public GameLocationUseCase(LocationService locationService) {
         this.locationService = locationService;
     }
 

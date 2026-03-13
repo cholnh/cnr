@@ -1,5 +1,6 @@
 package com.toy.cnr.cache.game;
 
+import com.toy.cnr.cache.game.key.GameKey;
 import com.toy.cnr.port.game.LocationPublisher;
 import com.toy.cnr.port.game.model.LocationDto;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -23,11 +24,7 @@ public class LocationRedisPublisher implements LocationPublisher {
 
     @Override
     public void publish(String gameId, String playerId, LocationDto location) {
-        var channel = buildChannel(gameId, playerId);
+        var channel = GameKey.location(gameId, playerId);
         redisTemplate.convertAndSend(channel, location);
-    }
-
-    private String buildChannel(String gameId, String playerId) {
-        return "game:" + gameId + ":player:" + playerId + ":location";
     }
 }

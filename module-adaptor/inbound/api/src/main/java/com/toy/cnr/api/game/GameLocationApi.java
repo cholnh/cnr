@@ -4,7 +4,7 @@ import com.toy.cnr.api.common.util.ResponseMapper;
 import com.toy.cnr.api.game.request.LocationPublishRequest;
 import com.toy.cnr.api.game.request.LocationSubscribeRequest;
 import com.toy.cnr.api.game.response.LocationResponse;
-import com.toy.cnr.api.game.usecase.GameUseCase;
+import com.toy.cnr.api.game.usecase.GameLocationUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
@@ -17,15 +17,15 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 
-@Tag(name = "Game", description = "실시간 좌표 브로드캐스트 API")
+@Tag(name = "Game Location", description = "실시간 GPS 좌표 브로드캐스트 API")
 @RestController
 @RequestMapping("/v1/game")
-public class GameApi {
+public class GameLocationApi {
 
-    private final GameUseCase gameUseCase;
+    private final GameLocationUseCase gameLocationUseCase;
 
-    public GameApi(GameUseCase gameUseCase) {
-        this.gameUseCase = gameUseCase;
+    public GameLocationApi(GameLocationUseCase gameLocationUseCase) {
+        this.gameLocationUseCase = gameLocationUseCase;
     }
 
     @Operation(
@@ -37,7 +37,7 @@ public class GameApi {
         @RequestBody LocationPublishRequest request
     ) {
         return ResponseMapper.toResponseEntity(
-            gameUseCase.publishLocation(request)
+            gameLocationUseCase.publishLocation(request)
         );
     }
 
@@ -50,10 +50,10 @@ public class GameApi {
         value = "/location/subscribe",
         produces = MediaType.TEXT_EVENT_STREAM_VALUE
     )
-    public SseEmitter subscribe(@RequestBody LocationSubscribeRequest request) {
-        var emitter = new SseEmitter(0L); // timeout 없음
+    public SseEmitter subscribeLocation(@RequestBody LocationSubscribeRequest request) {
+        var emitter = new SseEmitter(0L);
 
-        gameUseCase.subscribeToPlayers(
+        gameLocationUseCase.subscribeToPlayers(
             request.gameId(),
             request.playerIds(),
             location -> {
@@ -69,15 +69,14 @@ public class GameApi {
             }
         );
 
-        // 연결 종료 시 구독 해제
         emitter.onCompletion(() ->
-            gameUseCase.unsubscribe(request.gameId(), request.playerIds())
+            gameLocationUseCase.unsubscribe(request.gameId(), request.playerIds())
         );
         emitter.onTimeout(() ->
-            gameUseCase.unsubscribe(request.gameId(), request.playerIds())
+            gameLocationUseCase.unsubscribe(request.gameId(), request.playerIds())
         );
         emitter.onError(e ->
-            gameUseCase.unsubscribe(request.gameId(), request.playerIds())
+            gameLocationUseCase.unsubscribe(request.gameId(), request.playerIds())
         );
 
         return emitter;

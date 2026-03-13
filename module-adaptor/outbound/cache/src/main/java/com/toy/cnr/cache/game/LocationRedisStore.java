@@ -1,5 +1,6 @@
 package com.toy.cnr.cache.game;
 
+import com.toy.cnr.cache.game.key.GameKey;
 import com.toy.cnr.port.common.RepositoryResult;
 import com.toy.cnr.port.game.LocationStore;
 import com.toy.cnr.port.game.model.LocationDto;
@@ -31,7 +32,7 @@ public class LocationRedisStore implements LocationStore {
         double latitude
     ) {
         try {
-            var key = buildGeoKey(gameId);
+            var key = GameKey.locations(gameId);
             redisTemplate.opsForGeo().add(key, new Point(longitude, latitude), playerId);
             return new RepositoryResult.Found<>(null);
         } catch (Exception e) {
@@ -42,7 +43,7 @@ public class LocationRedisStore implements LocationStore {
     @Override
     public RepositoryResult<LocationDto> getLocation(String gameId, String playerId) {
         try {
-            var key = buildGeoKey(gameId);
+            var key = GameKey.locations(gameId);
             var positions = redisTemplate.opsForGeo().position(key, playerId);
 
             if (positions == null || positions.isEmpty() || positions.getFirst() == null) {
@@ -63,7 +64,4 @@ public class LocationRedisStore implements LocationStore {
         }
     }
 
-    private String buildGeoKey(String gameId) {
-        return "game:" + gameId + ":locations";
-    }
 }
