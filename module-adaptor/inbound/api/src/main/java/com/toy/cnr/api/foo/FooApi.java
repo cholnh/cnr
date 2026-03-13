@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Hidden
 @Tag(name = "Foo", description = "Foo 도메인 CRUD API")
 @RestController
 @RequestMapping("/v1/foo")
