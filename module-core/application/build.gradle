@@ -11,4 +11,6 @@ dependencies {
     implementation project(':module-core:port')
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    testImplementation 'org.mockito:mockito-core'
 }

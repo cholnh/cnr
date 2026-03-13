@@ -40,7 +40,6 @@ public class AuthDocsApi {
             + "```\n",
         tags = "token-api"
     )
-    @Hidden
     @PostMapping("/refresh")
     private ResponseEntity<SuccessResponse<BearerAuthenticationToken>> refreshToken() throws IllegalAccessException {
         throw throwByApiDocsMethodAccess();

@@ -41,7 +41,8 @@ subprojects {
         implementation "org.apache.commons:commons-collections4:${commonsCollections4Version}"
         testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
         testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-        testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
+        testImplementation "org.junit.jupiter:junit-jupiter"
+        testRuntimeOnly "org.junit.platform:junit-platform-launcher"
     }
 
     tasks.named('test') {
