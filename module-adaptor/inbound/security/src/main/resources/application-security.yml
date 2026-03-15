@@ -17,7 +17,7 @@ security:
 jwt:
   private: ${jwt.private}
   accessToken:
-    ttl: 3600 # 1 hour
+    ttl: 43200 # 12 hour
   refreshToken:
     ttl: 43200 # 12 hours
 ---

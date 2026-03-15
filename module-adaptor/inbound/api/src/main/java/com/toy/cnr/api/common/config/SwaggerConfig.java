@@ -32,7 +32,6 @@ public class SwaggerConfig {
                 .version("v1.0.0")
             )
             .servers(List.of(
-                new Server().url("http://localhost:8080").description("Local"),
                 new Server().url("http://125.240.22.220").description("Dev"),
                 new Server().url("https://api.cnr.example.com").description("Production")
             ))
