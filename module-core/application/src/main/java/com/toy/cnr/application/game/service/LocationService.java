@@ -76,6 +76,19 @@ public class LocationService {
     }
 
     /**
+     * 저장된 플레이어 좌표를 조회합니다.
+     *
+     * @param gameId   게임 세션 ID
+     * @param playerId 플레이어 ID
+     * @return 조회 성공 시 PlayerLocation, 없거나 실패 시 CommandResult.BusinessError
+     */
+    public CommandResult<PlayerLocation> getLocation(String gameId, String playerId) {
+        var result = locationStore.getLocation(gameId, playerId);
+        return ResultMapper.toCommandResult(result)
+            .map(dto -> LocationMapper.toDomain(gameId, dto));
+    }
+
+    /**
      * 여러 플레이어의 좌표 채널을 구독합니다.
      */
     public void subscribe(
