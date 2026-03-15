@@ -25,6 +25,30 @@ public class GameLocationUseCase {
     }
 
     /**
+     * 현재 플레이어의 저장된 좌표를 조회합니다.
+     *
+     * @param gameId   게임 세션 ID
+     * @param playerId 요청자(현재 사용자) 플레이어 ID
+     * @return 조회 성공 시 LocationResponse, 없으면 BusinessError
+     */
+    public CommandResult<LocationResponse> getMyLocation(String gameId, String playerId) {
+        return getPlayerLocation(gameId, playerId);
+    }
+
+    /**
+     * 특정 플레이어의 저장된 좌표를 조회합니다.
+     * 같은 게임에 참여한 플레이어의 최신 위치를 한 번 조회할 때 사용합니다.
+     *
+     * @param gameId   게임 세션 ID
+     * @param playerId 조회할 플레이어 ID
+     * @return 조회 성공 시 LocationResponse, 없으면 BusinessError (404)
+     */
+    public CommandResult<LocationResponse> getPlayerLocation(String gameId, String playerId) {
+        return locationService.getLocation(gameId, playerId)
+            .map(LocationResponse::from);
+    }
+
+    /**
      * 좌표를 발행합니다 (GeoHash 저장 + Pub/Sub 발행).
      */
     public CommandResult<LocationResponse> publishLocation(LocationPublishRequest request) {
