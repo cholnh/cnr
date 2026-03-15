@@ -44,6 +44,21 @@ public class GameLocationApi {
     }
 
     @Operation(
+        summary = "특정 유저 위치 조회",
+        description = "해당 게임에 참여한 특정 플레이어의 Redis 저장 최신 좌표를 조회합니다. "
+            + "위치를 한 번도 발행하지 않은 플레이어면 404입니다. 인증된 사용자만 호출 가능합니다."
+    )
+    @GetMapping("/{gameId}/location/{playerId}")
+    public ResponseEntity<LocationResponse> getPlayerLocation(
+        @PathVariable String gameId,
+        @PathVariable String playerId
+    ) {
+        return ResponseMapper.toResponseEntity(
+            gameLocationUseCase.getPlayerLocation(gameId, playerId)
+        );
+    }
+
+    @Operation(
         summary = "좌표 발행",
         description = "플레이어 좌표를 Redis GeoHash에 저장하고 Pub/Sub으로 구독자들에게 브로드캐스트합니다."
     )
