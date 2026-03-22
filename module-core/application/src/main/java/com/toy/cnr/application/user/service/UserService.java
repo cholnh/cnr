@@ -25,7 +25,7 @@ public class UserService {
     public CommandResult<User> findByEmail(String email) {
         return switch (userRepository.findByEmail(email)) {
             case RepositoryResult.Found(var dto) -> new CommandResult.Success<>(
-                new User(dto.id(), dto.email(), dto.name(), dto.createdAt()), null
+                new User(dto.id(), dto.email(), dto.name(), dto.nickname(), dto.createdAt()), null
             );
             case RepositoryResult.NotFound(var msg) -> new CommandResult.BusinessError<>(msg);
             case RepositoryResult.Error(var t) -> new CommandResult.BusinessError<>(t.getMessage());
@@ -35,7 +35,7 @@ public class UserService {
     public CommandResult<User> createByEmail(String email, String name) {
         return switch (userRepository.save(new UserCreateDto(email, name))) {
             case RepositoryResult.Found(var userDto) -> new CommandResult.Success<>(
-                new User(userDto.id(), userDto.email(), userDto.name(), userDto.createdAt()), null
+                new User(userDto.id(), userDto.email(), userDto.name(), userDto.nickname(), userDto.createdAt()), null
             );
             case RepositoryResult.NotFound(var msg) -> new CommandResult.BusinessError<>(msg);
             case RepositoryResult.Error(var t) -> new CommandResult.BusinessError<>(t.getMessage());
@@ -52,7 +52,7 @@ public class UserService {
         return switch (userAuthOAuthRepository.findByProviderAndOauthId(provider, oauthId)) {
             case RepositoryResult.Found(var oauthDto) -> switch (userRepository.findByEmail(email)) {
                 case RepositoryResult.Found(var userDto) -> new CommandResult.Success<>(
-                    new User(userDto.id(), userDto.email(), userDto.name(), userDto.createdAt()), null
+                    new User(userDto.id(), userDto.email(), userDto.name(), userDto.nickname(), userDto.createdAt()), null
                 );
                 case RepositoryResult.NotFound(var msg) -> new CommandResult.BusinessError<>(msg);
                 case RepositoryResult.Error(var t) -> new CommandResult.BusinessError<>(t.getMessage());
@@ -75,7 +75,7 @@ public class UserService {
                     new UserAuthOAuthCreateDto(userDto.id(), provider, oauthId, accessToken)
                 );
                 yield new CommandResult.Success<>(
-                    new User(userDto.id(), userDto.email(), userDto.name(), userDto.createdAt()), null
+                    new User(userDto.id(), userDto.email(), userDto.name(), userDto.nickname(), userDto.createdAt()), null
                 );
             }
             case RepositoryResult.NotFound(var msg) -> new CommandResult.BusinessError<>(msg);
@@ -85,5 +85,15 @@ public class UserService {
 
     public void updateLastLoginAt(String email, LocalDateTime lastLoginAt) {
         userRepository.updateLastLoginAt(email, lastLoginAt);
+    }
+
+    public CommandResult<User> updateNickname(String email, String nickname) {
+        return switch (userRepository.updateNickname(email, nickname)) {
+            case RepositoryResult.Found(var dto) -> new CommandResult.Success<>(
+                new User(dto.id(), dto.email(), dto.name(), dto.nickname(), dto.createdAt()), null
+            );
+            case RepositoryResult.NotFound(var msg) -> new CommandResult.BusinessError<>(msg);
+            case RepositoryResult.Error(var t) -> new CommandResult.BusinessError<>(t.getMessage());
+        };
     }
 }

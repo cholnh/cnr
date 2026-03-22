@@ -45,4 +45,15 @@ public class UserRepositoryImpl implements UserRepository {
             "User not found with email: " + email
         );
     }
+
+    @Override
+    public RepositoryResult<UserDto> updateNickname(String email, String nickname) {
+        return RepositoryResult.ofOptional(
+            () -> userJpaRepository.findByEmail(email).map(entity -> {
+                entity.updateNickname(nickname);
+                return userJpaRepository.save(entity).toDto();
+            }),
+            "User not found with email: " + email
+        );
+    }
 }

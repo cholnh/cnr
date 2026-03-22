@@ -33,7 +33,7 @@ public class OAuthUserService {
             case RepositoryResult.Found(var info) -> switch (userAuthOAuthRepository.findByProviderAndOauthId(provider, info.oauthId())) {
                 case RepositoryResult.Found(var ignored) -> switch (userRepository.findByEmail(info.email())) {
                     case RepositoryResult.Found(var userDto) -> new CommandResult.Success<>(
-                        new User(userDto.id(), userDto.email(), userDto.name(), userDto.createdAt()), null
+                        new User(userDto.id(), userDto.email(), userDto.name(), userDto.nickname(), userDto.createdAt()), null
                     );
                     case RepositoryResult.NotFound(var msg) -> new CommandResult.BusinessError<>(msg);
                     case RepositoryResult.Error(var t) -> new CommandResult.BusinessError<>(t.getMessage());
