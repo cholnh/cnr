@@ -60,7 +60,15 @@ public class GameLocationApi {
 
     @Operation(
         summary = "좌표 발행",
-        description = "플레이어 좌표를 Redis GeoHash에 저장하고 Pub/Sub으로 구독자들에게 브로드캐스트합니다."
+        description = """
+            플레이어 좌표를 Redis GeoHash에 저장하고, Pub/Sub으로 해당 플레이어를 구독 중인 클라이언트에게 브로드캐스트합니다.
+            ```
+            curl -X POST '{host}/v1/game/location' \\
+              -H 'Authorization: Bearer <ACCESS_TOKEN>' \\
+              -H 'Content-Type: application/json' \\
+              -d '{"gameId":"game-1","playerId":"player-1","longitude":127.0276,"latitude":37.4979}'
+            ```
+            """
     )
     @PostMapping("/location")
     public ResponseEntity<LocationResponse> publishLocation(
@@ -73,8 +81,26 @@ public class GameLocationApi {
 
     @Operation(
         summary = "좌표 구독 (SSE)",
-        description = "지정한 플레이어들의 좌표 변경을 실시간으로 수신합니다. "
-            + "Server-Sent Events 스트림으로 응답됩니다."
+        description = """
+            지정한 플레이어들의 좌표 변경을 **Server-Sent Events** 스트림으로 실시간 수신합니다.
+            연결을 유지하는 동안 `event: location` 이벤트가 지속적으로 수신되며, 연결을 끊으면 자동으로 구독이 해제됩니다.
+
+            > ⚠️ Swagger UI에서는 SSE 응답을 직접 확인하기 어렵습니다. 아래 cURL 명령으로 테스트하세요.
+
+            ```
+            curl -X POST '{host}/v1/game/location/subscribe' \\
+              -H 'Authorization: Bearer <ACCESS_TOKEN>' \\
+              -H 'Content-Type: application/json' \\
+              -H 'Accept: text/event-stream' \\
+              --no-buffer \\
+              -d '{"gameId":"game-1","playerIds":["player-1","player-2"]}'
+            ```
+            수신 예시:
+            ```
+            event: location
+            data: {"playerId":"player-1","longitude":127.0276,"latitude":37.4979,"timestamp":1741996800000}
+            ```
+            """
     )
     @PostMapping(
         value = "/location/subscribe",
