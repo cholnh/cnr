@@ -39,6 +39,21 @@ public final class ResponseMapper {
     }
 
     /**
+     * CommandResult를 ResponseEntity(201 Created)로 변환합니다.
+     * 리소스 생성 성공 시 BusinessError는 409 Conflict로 응답합니다.
+     */
+    public static <T> ResponseEntity<T> toCreatedResponseEntity(CommandResult<T> result) {
+        return switch (result) {
+            case CommandResult.Success(var data, var msg) ->
+                ResponseEntity.status(HttpStatus.CREATED).body(data);
+            case CommandResult.ValidationError(var errors) ->
+                errorResponse(HttpStatus.BAD_REQUEST, errors);
+            case CommandResult.BusinessError(var reason) ->
+                conflictResponse(reason);
+        };
+    }
+
+    /**
      * CommandResult를 ResponseEntity(204 No Content)로 변환합니다.
      * delete 등 본문 없이 성공을 응답하는 경우에 사용합니다.
      */
@@ -73,5 +88,11 @@ public final class ResponseMapper {
             new ApiError.NotFound("resource", reason)
         );
         return (ResponseEntity<T>) ResponseEntity.status(status).body(body);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> ResponseEntity<T> conflictResponse(String reason) {
+        var body = ApiErrorResponse.from(new ApiError.Conflict(reason));
+        return (ResponseEntity<T>) ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 }

@@ -5,8 +5,7 @@ import com.toy.cnr.api.auth.model.RegisterRequest;
 import com.toy.cnr.api.auth.model.RegisterResponse;
 import com.toy.cnr.api.auth.usecase.AuthOAuthRegisterUseCase;
 import com.toy.cnr.api.auth.usecase.AuthRegisterUseCase;
-import com.toy.cnr.api.common.error.ApiError;
-import com.toy.cnr.api.common.error.ApiErrorResponse;
+import com.toy.cnr.api.common.util.ResponseMapper;
 import com.toy.cnr.domain.common.CommandResult;
 import com.toy.cnr.security.model.authentication.BearerAuthenticationToken;
 import com.toy.cnr.security.model.response.SuccessResponse;
@@ -21,7 +20,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,12 +28,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 
 @Tag(name = "token-api")
 @RestController
 @RequestMapping("/v1/auth")
-public class AuthApi {
+public class AuthRegisterApi {
 
     @Value("${security.refresh.tokenCookieKey}")
     private String refreshTokenCookieKey;
@@ -43,7 +40,7 @@ public class AuthApi {
     private final AuthRegisterUseCase authRegisterUseCase;
     private final AuthOAuthRegisterUseCase authOAuthRegisterUseCase;
 
-    public AuthApi(AuthRegisterUseCase authRegisterUseCase, AuthOAuthRegisterUseCase authOAuthRegisterUseCase) {
+    public AuthRegisterApi(AuthRegisterUseCase authRegisterUseCase, AuthOAuthRegisterUseCase authOAuthRegisterUseCase) {
         this.authRegisterUseCase = authRegisterUseCase;
         this.authOAuthRegisterUseCase = authOAuthRegisterUseCase;
     }
@@ -79,11 +76,7 @@ public class AuthApi {
     })
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@RequestBody @Valid RegisterRequest request) {
-        return switch (authRegisterUseCase.register(request)) {
-            case CommandResult.Success(var data, var msg) -> ResponseEntity.status(HttpStatus.CREATED).body(data);
-            case CommandResult.ValidationError(var errors) -> badRequest(errors);
-            case CommandResult.BusinessError(var reason) -> conflict(reason);
-        };
+        return ResponseMapper.toCreatedResponseEntity(authRegisterUseCase.register(request));
     }
 
     @Operation(
@@ -116,35 +109,11 @@ public class AuthApi {
         @RequestBody @Valid OAuthRegisterRequest request,
         HttpServletResponse httpServletResponse
     ) {
-        return switch (authOAuthRegisterUseCase.register(request.provider().trim(), request.code().trim())) {
-            case CommandResult.Success(var bearer, var msg) -> {
-                setRefreshTokenCookie(httpServletResponse, bearer);
-                yield ResponseEntity.ok(SuccessResponse.of(bearer));
-            }
-            case CommandResult.ValidationError(var errors) -> badRequest(errors);
-            case CommandResult.BusinessError(var reason) -> badRequest(reason);
-        };
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> ResponseEntity<T> badRequest(String message) {
-        return (ResponseEntity<T>) ResponseEntity.badRequest().body(
-            ApiErrorResponse.from(new ApiError.BadRequest(message, List.of()))
-        );
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> ResponseEntity<T> badRequest(List<String> errors) {
-        return (ResponseEntity<T>) ResponseEntity.badRequest().body(
-            ApiErrorResponse.from(new ApiError.BadRequest("Validation failed", errors))
-        );
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> ResponseEntity<T> conflict(String message) {
-        return (ResponseEntity<T>) ResponseEntity.status(HttpStatus.CONFLICT).body(
-            ApiErrorResponse.from(new ApiError.BadRequest(message, List.of()))
-        );
+        var result = authOAuthRegisterUseCase.register(request.provider().trim(), request.code().trim());
+        if (result instanceof CommandResult.Success<BearerAuthenticationToken>(var bearer, var msg)) {
+            setRefreshTokenCookie(httpServletResponse, bearer);
+        }
+        return ResponseMapper.toResponseEntity(result.map(SuccessResponse::of));
     }
 
     private void setRefreshTokenCookie(HttpServletResponse response, BearerAuthenticationToken bearer) {

@@ -45,6 +45,13 @@ public record ApiErrorResponse(
                     details,
                     LocalDateTime.now()
                 );
+            case ApiError.Conflict(var msg) ->
+                new ApiErrorResponse(
+                    "CONFLICT",
+                    msg,
+                    List.of(),
+                    LocalDateTime.now()
+                );
             case ApiError.InternalError(var msg) ->
                 new ApiErrorResponse(
                     "INTERNAL_ERROR",
