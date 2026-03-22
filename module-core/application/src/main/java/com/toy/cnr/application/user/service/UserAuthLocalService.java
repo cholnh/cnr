@@ -21,4 +21,12 @@ public class UserAuthLocalService {
             case RepositoryResult.Error(var t) -> new CommandResult.BusinessError<>(t.getMessage());
         };
     }
+
+    public CommandResult<Void> create(Long userId, String passwordHash) {
+        return switch (userAuthLocalRepository.save(userId, passwordHash)) {
+            case RepositoryResult.Found(var ignored) -> new CommandResult.Success<>(null, null);
+            case RepositoryResult.NotFound(var msg) -> new CommandResult.BusinessError<>(msg);
+            case RepositoryResult.Error(var t) -> new CommandResult.BusinessError<>(t.getMessage());
+        };
+    }
 }

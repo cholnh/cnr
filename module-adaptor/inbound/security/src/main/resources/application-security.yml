@@ -30,9 +30,13 @@ permitMatcher:
     # common api
     - method: "GET"
       pattern: "/elb-health"
-    # oauth
+    # auth
+    - method: "POST"
+      pattern: "/v1/auth/register"
     - method: "POST"
       pattern: "/v1/auth/oauth"
+    - method: "POST"
+      pattern: "/v1/auth/oauth/register"
     - method: "*"
       pattern: "/actuator/**"
     # docs

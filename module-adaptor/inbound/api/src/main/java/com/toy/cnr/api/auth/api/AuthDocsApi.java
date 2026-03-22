@@ -1,5 +1,6 @@
 package com.toy.cnr.api.auth.api;
 
+import com.toy.cnr.api.auth.model.OAuthRegisterRequest;
 import com.toy.cnr.security.model.authentication.BearerAuthenticationToken;
 import com.toy.cnr.security.model.response.FailResponse;
 import com.toy.cnr.security.model.response.SuccessResponse;
@@ -68,6 +69,7 @@ public class AuthDocsApi {
     @Operation(
         summary = "OAuth 로그인",
         description = "OAuth 인가 코드를 사용하여 인증 토큰을 발급합니다. 지원 provider: `kakao`\n"
+            + "- 가입되지 않은 계정이면 `400 Bad Request` 를 반환합니다. 먼저 `/v1/auth/oauth/register` 로 가입하세요.\n"
             + "```\n"
             + "curl --location --request POST 'https://{{url}}/v1/auth/oauth' \\\n"
             + "--header 'Content-Type: application/json' \\\n"
@@ -81,7 +83,7 @@ public class AuthDocsApi {
             required = true,
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = OAuthRequest.class),
+                schema = @Schema(implementation = OAuthRegisterRequest.class),
                 examples = @ExampleObject(
                     name = "kakao",
                     summary = "카카오 OAuth 로그인",
@@ -165,11 +167,4 @@ public class AuthDocsApi {
         return new IllegalAccessException("This method is for using api documentation. It is not valid.");
     }
 
-    @Schema(description = "OAuth 로그인 요청")
-    private record OAuthRequest(
-        @Schema(description = "OAuth provider (예: kakao)", example = "kakao", requiredMode = Schema.RequiredMode.REQUIRED)
-        String provider,
-        @Schema(description = "OAuth 인가 코드", example = "AUTHORIZATION_CODE", requiredMode = Schema.RequiredMode.REQUIRED)
-        String code
-    ) {}
 }

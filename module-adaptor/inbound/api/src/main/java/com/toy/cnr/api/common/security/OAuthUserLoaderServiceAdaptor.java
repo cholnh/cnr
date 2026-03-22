@@ -25,8 +25,8 @@ public class OAuthUserLoaderServiceAdaptor implements OAuthUserLoaderService {
     }
 
     @Override
-    public AuthenticatedUser loadOrCreateByOAuthCode(String provider, String code) {
-        return switch (oAuthUserService.findOrCreateByOAuthCode(provider, code)) {
+    public AuthenticatedUser loadByOAuthCode(String provider, String code) {
+        return switch (oAuthUserService.findByOAuthCode(provider, code)) {
             case CommandResult.Success(var user, var msg) -> AuthenticatedUser.of(
                 user.email(),
                 "",
@@ -46,4 +46,5 @@ public class OAuthUserLoaderServiceAdaptor implements OAuthUserLoaderService {
             }
         };
     }
+
 }

@@ -32,6 +32,16 @@ public class UserService {
         };
     }
 
+    public CommandResult<User> createByEmail(String email, String name) {
+        return switch (userRepository.save(new UserCreateDto(email, name))) {
+            case RepositoryResult.Found(var userDto) -> new CommandResult.Success<>(
+                new User(userDto.id(), userDto.email(), userDto.name(), userDto.createdAt()), null
+            );
+            case RepositoryResult.NotFound(var msg) -> new CommandResult.BusinessError<>(msg);
+            case RepositoryResult.Error(var t) -> new CommandResult.BusinessError<>(t.getMessage());
+        };
+    }
+
     public CommandResult<User> findOrCreateByOAuth(
         String provider,
         String oauthId,
@@ -47,12 +57,12 @@ public class UserService {
                 case RepositoryResult.NotFound(var msg) -> new CommandResult.BusinessError<>(msg);
                 case RepositoryResult.Error(var t) -> new CommandResult.BusinessError<>(t.getMessage());
             };
-            case RepositoryResult.NotFound(var ignored) -> createUserByOAuth(provider, oauthId, email, name, accessToken);
+            case RepositoryResult.NotFound(var ignored) -> createByOAuth(provider, oauthId, email, name, accessToken);
             case RepositoryResult.Error(var t) -> new CommandResult.BusinessError<>(t.getMessage());
         };
     }
 
-    private CommandResult<User> createUserByOAuth(
+    public CommandResult<User> createByOAuth(
         String provider,
         String oauthId,
         String email,
