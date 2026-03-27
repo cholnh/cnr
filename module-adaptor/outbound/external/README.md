@@ -12,6 +12,8 @@
 | 모듈 | 설명 | 상태 | 링크 |
 |---|---|---|---|
 | foo-client | Foo 외부 서비스 연동 | 스켈레톤 | [foo-client/README.md](foo-client/README.md) |
+| kakao-oauth-client | Kakao OAuth 연동 | 구현 | `kakao-oauth-client/` |
+| naver-map-client | Naver Map Open API 연동 | 스켈레톤 | [naver-map-client/README.md](naver-map-client/README.md) |
 
 ## 새로운 외부 API 클라이언트 추가 가이드
 

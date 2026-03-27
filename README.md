@@ -129,6 +129,11 @@ FooUpdateRequest → FooUpdateCommand → FooUpdateDto → FooEntity → [저장
 | 애플리케이션 설정/실행 문제가 있다 | [module-bootstrap](module-bootstrap/README.md)                                 |
 | 프로젝트 전체 구조를 이해하고 싶다 | 이 문서 (README.md)                                                               |
 
+## feature/geo — 시야·거리(Geo) 기능
+
+> **이 브랜치**에서는 **시야/거리(Geo)** 기능(경찰 반경 내 도둑 조회 등)을 개발합니다.  
+> API 스펙·반경 설정·응답 형식은 **[docs/README-feature-geo.md](docs/README-feature-geo.md)** 에 정리되어 있습니다.
+
 ## 빠른 시작
 
 ### 사전 요구사항

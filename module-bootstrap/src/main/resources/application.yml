@@ -9,6 +9,7 @@ spring:
       - application-cache.yml
       - application-security.yml
       - application-kakao-oauth.yml
+      - application-naver-map.yml
 
 server:
   tomcat:

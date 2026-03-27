@@ -7,11 +7,10 @@ bootJar { enabled = false }
 jar { enabled = true }
 
 dependencies {
-    implementation project(':module-adaptor:inbound:security')
-    implementation project(':module-core:application')
-    implementation project(':module-core:domain')
     implementation project(':module-core:port')
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
