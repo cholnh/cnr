@@ -11,7 +11,7 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
-    @Value("${cors.pattern}:/**")
+    @Value("${cors.pattern:/**}")
     private String pattern;
 
     @Value("#{'${cors.allowedOrigins:}'.split(' ')}")

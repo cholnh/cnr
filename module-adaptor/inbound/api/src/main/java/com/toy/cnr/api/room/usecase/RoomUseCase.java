@@ -3,8 +3,10 @@ package com.toy.cnr.api.room.usecase;
 import com.toy.cnr.api.room.request.*;
 import com.toy.cnr.api.room.response.*;
 import com.toy.cnr.application.game.service.GameActionService;
+import com.toy.cnr.application.room.service.RoomEventService;
 import com.toy.cnr.application.room.service.RoomService;
 import com.toy.cnr.domain.common.CommandResult;
+import com.toy.cnr.domain.room.RoomEvent;
 import org.springframework.stereotype.Component;
 
 /**
@@ -17,10 +19,16 @@ public class RoomUseCase {
 
     private final RoomService roomService;
     private final GameActionService gameActionService;
+    private final RoomEventService roomEventService;
 
-    public RoomUseCase(RoomService roomService, GameActionService gameActionService) {
+    public RoomUseCase(
+        RoomService roomService,
+        GameActionService gameActionService,
+        RoomEventService roomEventService
+    ) {
         this.roomService = roomService;
         this.gameActionService = gameActionService;
+        this.roomEventService = roomEventService;
     }
 
     public CommandResult<RoomResponse> createRoom(RoomCreateRequest request, String playerId) {
@@ -47,12 +55,26 @@ public class RoomUseCase {
         RoomJoinRequest request,
         String playerId
     ) {
-        return roomService.joinRoom(request.toCommand(roomId, playerId))
-            .map(RoomDetailResponse::from);
+        var result = roomService.joinRoom(request.toCommand(roomId, playerId));
+        if (result instanceof CommandResult.Success<com.toy.cnr.domain.room.Room> success) {
+            var joinedPlayer = success.data().players().stream()
+                .filter(p -> p.playerId().equals(playerId))
+                .findFirst();
+            joinedPlayer.ifPresent(player -> roomEventService.publish(
+                new RoomEvent.PlayerJoined(roomId, playerId, player.playerName(), System.currentTimeMillis())
+            ));
+        }
+        return result.map(RoomDetailResponse::from);
     }
 
     public CommandResult<Void> leaveRoom(String roomId, String playerId) {
-        return roomService.leaveRoom(new com.toy.cnr.domain.room.RoomLeaveCommand(roomId, playerId));
+        var result = roomService.leaveRoom(new com.toy.cnr.domain.room.RoomLeaveCommand(roomId, playerId));
+        if (result instanceof CommandResult.Success<Void>) {
+            roomEventService.publish(
+                new RoomEvent.PlayerLeft(roomId, playerId, System.currentTimeMillis())
+            );
+        }
+        return result;
     }
 
     public CommandResult<RoomPlayersResponse> getPlayers(String roomId) {

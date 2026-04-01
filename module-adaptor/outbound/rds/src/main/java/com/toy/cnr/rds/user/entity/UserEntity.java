@@ -33,6 +33,9 @@ public class UserEntity {
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
+    @Column(name = "nickname")
+    private String nickname;
+
     private UserEntity(String email, String name) {
         this.email = email;
         this.name = name;
@@ -46,7 +49,11 @@ public class UserEntity {
         this.lastLoginAt = lastLoginAt;
     }
 
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
     public UserDto toDto() {
-        return new UserDto(id, email, name, createdAt);
+        return new UserDto(id, email, name, nickname, createdAt);
     }
 }

@@ -6,6 +6,7 @@ public record User(
     Long id,
     String email,
     String name,
+    String nickname,
     LocalDateTime createdAt
 ) {
 }

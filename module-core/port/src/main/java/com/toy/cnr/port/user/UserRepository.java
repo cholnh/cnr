@@ -10,4 +10,5 @@ public interface UserRepository {
     RepositoryResult<UserDto> findByEmail(String email);
     RepositoryResult<UserDto> save(UserCreateDto dto);
     RepositoryResult<Void> updateLastLoginAt(String email, LocalDateTime lastLoginAt);
+    RepositoryResult<UserDto> updateNickname(String email, String nickname);
 }

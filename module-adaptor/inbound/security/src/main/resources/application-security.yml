@@ -17,7 +17,7 @@ security:
 jwt:
   private: ${jwt.private}
   accessToken:
-    ttl: 3600 # 1 hour
+    ttl: 43200 # 12 hour
   refreshToken:
     ttl: 43200 # 12 hours
 ---
@@ -30,9 +30,13 @@ permitMatcher:
     # common api
     - method: "GET"
       pattern: "/elb-health"
-    # oauth
+    # auth
+    - method: "POST"
+      pattern: "/v1/auth/register"
     - method: "POST"
       pattern: "/v1/auth/oauth"
+    - method: "POST"
+      pattern: "/v1/auth/oauth/register"
     - method: "*"
       pattern: "/actuator/**"
     # docs

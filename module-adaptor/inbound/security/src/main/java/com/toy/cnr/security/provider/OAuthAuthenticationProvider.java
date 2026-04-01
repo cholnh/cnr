@@ -43,7 +43,7 @@ public class OAuthAuthenticationProvider implements AuthenticationProvider {
     private Authentication internalAuthenticate(Authentication authentication) {
         log.debug("OAuthToken authentication token = {}", authentication);
         var oauthToken = (OAuthToken) authentication;
-        var user = oAuthUserLoaderService.loadOrCreateByOAuthCode(oauthToken.getProvider(), oauthToken.getCode());
+        var user = oAuthUserLoaderService.loadByOAuthCode(oauthToken.getProvider(), oauthToken.getCode());
         user.validateAccountStatus();
         var accessToken = JwtUtil.issueAccessToken(user.getUsername());
         var refreshToken = JwtUtil.issueRefreshToken(user.getUsername());

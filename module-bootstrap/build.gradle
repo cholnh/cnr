@@ -16,6 +16,7 @@ dependencies {
     implementation project(':module-adaptor:outbound:rds')
     implementation project(':module-adaptor:outbound:cache')
     implementation project(':module-adaptor:outbound:external:kakao-oauth-client')
+    implementation project(':module-adaptor:outbound:external:naver-map-client')
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

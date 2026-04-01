@@ -58,4 +58,13 @@ public class GameKey {
     public static String generateSubscriberId(String gameId) {
         return gameId + ":" + UUID.randomUUID();
     }
+
+    // Room events (Pub/Sub)
+    public static String roomEvents(String roomId) {
+        return "room:" + roomId + ":events";
+    }
+
+    public static String generateRoomSubscriberId(String roomId) {
+        return "room:" + roomId + ":" + UUID.randomUUID();
+    }
 }

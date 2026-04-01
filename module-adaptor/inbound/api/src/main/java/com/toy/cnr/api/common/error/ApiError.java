@@ -15,7 +15,7 @@ import java.util.List;
  * }</pre>
  */
 public sealed interface ApiError
-    permits ApiError.NotFound, ApiError.BadRequest, ApiError.InternalError {
+    permits ApiError.NotFound, ApiError.BadRequest, ApiError.Conflict, ApiError.InternalError {
 
     String message();
 
@@ -34,6 +34,13 @@ public sealed interface ApiError
      * @param details 상세 검증 오류 목록
      */
     record BadRequest(String message, List<String> details) implements ApiError {}
+
+    /**
+     * 리소스가 이미 존재하는 경우 (HTTP 409).
+     *
+     * @param message 에러 메시지
+     */
+    record Conflict(String message) implements ApiError {}
 
     /**
      * 서버 내부 오류가 발생한 경우 (HTTP 500).
