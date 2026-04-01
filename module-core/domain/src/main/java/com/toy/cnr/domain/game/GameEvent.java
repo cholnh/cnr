@@ -9,6 +9,7 @@ public sealed interface GameEvent
     permits GameEvent.PlayerArrested,
             GameEvent.PlayerRescued,
             GameEvent.PrisonEscapeWarning,
+            GameEvent.RestrictedAreaEntered,
             GameEvent.Announcement,
             GameEvent.GameStarted,
             GameEvent.GameEnded,
@@ -40,6 +41,15 @@ public sealed interface GameEvent
     record PrisonEscapeWarning(
         String gameId,
         String playerId,
+        long timestamp
+    ) implements GameEvent {}
+
+    /** 위험/제한 구역(restrictedArea) 진입 감지 */
+    record RestrictedAreaEntered(
+        String gameId,
+        String playerId,
+        double latitude,
+        double longitude,
         long timestamp
     ) implements GameEvent {}
 

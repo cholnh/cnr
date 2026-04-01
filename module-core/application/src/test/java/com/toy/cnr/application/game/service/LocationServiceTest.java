@@ -63,6 +63,14 @@ class LocationServiceTest {
         new GeoPointDto(38.0, 127.0)
     );
 
+    /** 제한/위험 구역 — (37~38°, 127~128°) 정사각형 (테스트용) */
+    private static final List<GeoPointDto> RESTRICTED_POLYGON = List.of(
+        new GeoPointDto(37.0, 127.0),
+        new GeoPointDto(37.0, 128.0),
+        new GeoPointDto(38.0, 128.0),
+        new GeoPointDto(38.0, 127.0)
+    );
+
     /** 감옥 내부 좌표 */
     private static final double LAT_INSIDE = 37.5;
     private static final double LON_INSIDE = 127.5;
@@ -93,6 +101,17 @@ class LocationServiceTest {
         var settings = new RoomSettingsDto(
             "BASIC", 2, 10, 1, 1, 10, 1, 5.0,
             null, null, prisonArea, null
+        );
+        return new GameStateDto(
+            GAME_ID, "ABCD", GameStatus.PLAYING.name(),
+            settings, 1_000L, 601_000L
+        );
+    }
+
+    private static GameStateDto gameStateDtoWithRestricted(List<GeoPointDto> restrictedArea) {
+        var settings = new RoomSettingsDto(
+            "BASIC", 2, 10, 1, 1, 10, 1, 5.0,
+            null, null, null, restrictedArea
         );
         return new GameStateDto(
             GAME_ID, "ABCD", GameStatus.PLAYING.name(),
@@ -174,8 +193,7 @@ class LocationServiceTest {
 
             locationService.publishLocation(command);
 
-            // ACTIVE이므로 gameStateStore 조회 없음
-            verifyNoInteractions(gameStateStore);
+            // ACTIVE이므로 PrisonEscapeWarning은 발행되지 않는다.
             verify(gameEventService, never()).publish(any(GameEvent.PrisonEscapeWarning.class));
         }
 
@@ -212,6 +230,32 @@ class LocationServiceTest {
             verify(gameEventService).publish(captor.capture());
             assertEquals(GAME_ID, captor.getValue().gameId());
             assertEquals(PLAYER_ID, captor.getValue().playerId());
+        }
+
+        @Test
+        @DisplayName("[성공] restrictedArea 외부 → 내부로 진입 시 RestrictedAreaEntered 이벤트 발행")
+        void publishLocation_restrictedArea_enter_publishEvent() {
+            when(locationStore.getLocation(GAME_ID, PLAYER_ID))
+                .thenReturn(new RepositoryResult.Found<>(
+                    new LocationDto(PLAYER_ID, 126.0, 36.0, 1_000L)
+                ));
+
+            var command = commandAt(LAT_INSIDE, LON_INSIDE);
+            when(locationStore.saveLocation(any(), any(), anyDouble(), anyDouble()))
+                .thenReturn(new RepositoryResult.Found<>(null));
+            when(gameStateStore.getGameState(GAME_ID))
+                .thenReturn(new RepositoryResult.Found<>(gameStateDtoWithRestricted(RESTRICTED_POLYGON)));
+            when(inGamePlayerStore.getPlayer(GAME_ID, PLAYER_ID))
+                .thenReturn(new RepositoryResult.Found<>(activePlayerDto()));
+
+            locationService.publishLocation(command);
+
+            var captor = ArgumentCaptor.forClass(GameEvent.RestrictedAreaEntered.class);
+            verify(gameEventService).publish(captor.capture());
+            assertEquals(GAME_ID, captor.getValue().gameId());
+            assertEquals(PLAYER_ID, captor.getValue().playerId());
+            assertEquals(LAT_INSIDE, captor.getValue().latitude());
+            assertEquals(LON_INSIDE, captor.getValue().longitude());
         }
 
         @Test
@@ -274,7 +318,7 @@ class LocationServiceTest {
             var result = locationService.publishLocation(command);
 
             assertInstanceOf(CommandResult.Success.class, result);
-            verifyNoInteractions(gameStateStore, gameEventService);
+            verify(gameEventService, never()).publish(any());
         }
     }
 

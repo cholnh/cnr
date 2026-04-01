@@ -27,6 +27,15 @@ public final class GameEventMapper {
                 Map.of("playerId", e.playerId()),
                 e.timestamp()
             );
+            case GameEvent.RestrictedAreaEntered e -> new GameEventDto(
+                e.gameId(), "RESTRICTED_AREA_ENTERED",
+                Map.of(
+                    "playerId", e.playerId(),
+                    "latitude", String.valueOf(e.latitude()),
+                    "longitude", String.valueOf(e.longitude())
+                ),
+                e.timestamp()
+            );
             case GameEvent.Announcement e -> new GameEventDto(
                 e.gameId(), "ANNOUNCEMENT",
                 Map.of("senderId", e.senderId(), "message", e.message()),
@@ -92,6 +101,13 @@ public final class GameEventMapper {
             case "PRISON_ESCAPE_WARNING" -> new GameEvent.PrisonEscapeWarning(
                 dto.gameId(),
                 dto.data().get("playerId"),
+                dto.timestamp()
+            );
+            case "RESTRICTED_AREA_ENTERED" -> new GameEvent.RestrictedAreaEntered(
+                dto.gameId(),
+                dto.data().get("playerId"),
+                Double.parseDouble(dto.data().get("latitude")),
+                Double.parseDouble(dto.data().get("longitude")),
                 dto.timestamp()
             );
             case "ANNOUNCEMENT" -> new GameEvent.Announcement(

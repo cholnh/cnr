@@ -167,6 +167,43 @@ public record FooResponse(Long id, String name, String description) {
 | PUT | `/v1/foo/{id}` | Foo 수정 |
 | DELETE | `/v1/foo/{id}` | Foo 삭제 |
 
+## 도메인 API 예시: Game Event SSE (내부 로직 연동)
+
+게임 진행 중 발생하는 이벤트를 **SSE(Server-Sent Events)** 로 구독합니다.
+
+- **Endpoint**: `POST /v1/game/events/subscribe` (`text/event-stream`)
+- **구독 요청**: `GameEventSubscribeRequest` (`gameId`, `playerId`)
+- **응답 이벤트**: SSE `event:` 필드에 타입을 넣고, `data:` 로 `GameEventResponse` JSON을 전송합니다.
+
+### 이벤트 타입
+
+| event 타입 | 설명 | data 주요 필드 |
+|---|---|---|
+| `PLAYER_ARRESTED` | 경찰이 도둑을 체포 | `copsId`, `robberId` |
+| `PLAYER_RESCUED` | 도둑이 체포된 동료를 구출 | `rescuerId`, `rescuedId` |
+| `PRISON_ESCAPE_WARNING` | 체포된 플레이어가 감옥 범위를 이탈(경고) | `playerId` |
+| `RESTRICTED_AREA_ENTERED` | 플레이어가 제한/위험 구역(restrictedArea)에 “진입” | `playerId`, `latitude`, `longitude` |
+| `ANNOUNCEMENT` | 방장 공지 | `senderId`, `message` |
+| `GAME_STARTED` | 게임 시작 | - |
+| `GAME_ENDED` | 게임 종료 | `winnerRole` |
+| `ROLE_ASSIGNED` | 인게임 역할 배정 | `playerId`, `role` |
+| `GEM_COLLECTED` | 도둑이 보석 획득 | `robberId`, `gemId` |
+| `GEM_SPAWNED` | 보석 스폰 | `gemId`, `latitude`, `longitude` |
+| `PING_ALERT` | 인게임 핑/알람 | `senderId`, `pingType`, `latitude`, `longitude` |
+
+### “내부 로직”에서 이벤트가 발행되는 조건
+
+이번에 추가한 위치 발행 내부 로직은 `module-core:application`의 `LocationService.publishLocation()`에서 수행되며, 아래 조건에서 GameEvent를 발행합니다.
+
+- **감옥 이탈 경고** (`PRISON_ESCAPE_WARNING`)
+  - 플레이어 상태가 `ARRESTED` 이고,
+  - 방 설정에 `prisonArea` 폴리곤이 존재하며,
+  - 발행된 좌표가 `prisonArea` 폴리곤 **외부**인 경우
+- **제한/위험 구역 진입 감지** (`RESTRICTED_AREA_ENTERED`)
+  - 방 설정에 `restrictedArea` 폴리곤이 존재하며,
+  - 직전 좌표는 폴리곤 **외부**였고,
+  - 이번에 발행된 좌표가 폴리곤 **내부**로 “진입”한 경우 (edge-trigger)
+
 ## 새로운 API 추가 예시
 
 `Bar` 도메인의 API를 추가하는 경우:

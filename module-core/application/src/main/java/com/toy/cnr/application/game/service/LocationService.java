@@ -59,6 +59,7 @@ public class LocationService {
     public CommandResult<PlayerLocation> publishLocation(LocationPublishCommand command) {
         long timestamp = System.currentTimeMillis();
 
+        var previousLocation = locationStore.getLocation(command.gameId(), command.playerId());
         var storeResult = locationStore.saveLocation(
             command.gameId(),
             command.playerId(),
@@ -71,6 +72,13 @@ public class LocationService {
                 var dto = LocationMapper.toDto(command, timestamp);
                 locationPublisher.publish(command.gameId(), command.playerId(), dto);
                 checkPrisonEscape(command.gameId(), command.playerId(), command.latitude(), command.longitude());
+                checkRestrictedAreaEntered(
+                    command.gameId(),
+                    command.playerId(),
+                    previousLocation,
+                    command.latitude(),
+                    command.longitude()
+                );
                 return LocationMapper.fromCommand(command, timestamp);
             });
     }
@@ -142,6 +150,50 @@ public class LocationService {
         if (!PolygonUtils.contains(prisonArea, lat, lon)) {
             gameEventService.publish(new GameEvent.PrisonEscapeWarning(
                 gameId, playerId, System.currentTimeMillis()
+            ));
+        }
+    }
+
+    /**
+     * 플레이어가 restrictedArea(위험/제한 구역)에 "진입"했는지 검사합니다.
+     * <p>
+     * 이전 위치는 saveLocation 이전에 읽은 값으로 판단합니다.
+     */
+    private void checkRestrictedAreaEntered(
+        String gameId,
+        String playerId,
+        RepositoryResult<com.toy.cnr.port.game.model.LocationDto> previousLocation,
+        double lat,
+        double lon
+    ) {
+        var stateResult = gameStateStore.getGameState(gameId);
+        if (!(stateResult instanceof RepositoryResult.Found<GameStateDto> stateFound)) {
+            return;
+        }
+
+        var settings = stateFound.data().settings();
+        if (settings == null || settings.restrictedArea() == null || settings.restrictedArea().isEmpty()) {
+            return;
+        }
+
+        List<GeoPoint> restrictedArea = settings.restrictedArea().stream()
+            .map(p -> new GeoPoint(p.latitude(), p.longitude()))
+            .toList();
+
+        boolean nowInside = PolygonUtils.contains(restrictedArea, lat, lon);
+        if (!nowInside) {
+            return;
+        }
+
+        boolean prevInside = false;
+        if (previousLocation instanceof RepositoryResult.Found<com.toy.cnr.port.game.model.LocationDto> found) {
+            var prev = found.data();
+            prevInside = PolygonUtils.contains(restrictedArea, prev.latitude(), prev.longitude());
+        }
+
+        if (!prevInside) {
+            gameEventService.publish(new GameEvent.RestrictedAreaEntered(
+                gameId, playerId, lat, lon, System.currentTimeMillis()
             ));
         }
     }
