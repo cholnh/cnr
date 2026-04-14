@@ -1,5 +1,7 @@
 package com.toy.cnr.api.room;
 
+import com.toy.cnr.api.common.error.ApiError;
+import com.toy.cnr.api.common.error.ApiErrorResponse;
 import com.toy.cnr.api.common.util.ResponseMapper;
 import com.toy.cnr.api.common.util.UserPrincipalAdaptorUtil;
 import com.toy.cnr.api.room.request.*;
@@ -7,6 +9,8 @@ import com.toy.cnr.api.room.response.*;
 import com.toy.cnr.api.room.usecase.RoomUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import com.toy.cnr.domain.common.CommandResult;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -62,11 +66,28 @@ public class RoomApi {
 
     @Operation(summary = "방 나가기", description = "방에서 나갑니다.")
     @PostMapping("/{roomId}/leave")
-    public ResponseEntity<Void> leaveRoom(@PathVariable String roomId) {
+    public ResponseEntity<?> leaveRoom(@PathVariable String roomId) {
         var user = UserPrincipalAdaptorUtil.getUserInfo();
-        return ResponseMapper.toNoContentResponse(
-            roomUseCase.leaveRoom(roomId, user.id().toString())
-        );
+        var result = roomUseCase.leaveRoom(roomId, user.id().toString());
+        return switch (result) {
+            case CommandResult.Success(var data, var msg) ->
+                ResponseEntity.noContent().build();
+            case CommandResult.ValidationError(var errors) ->
+                ResponseEntity.badRequest().body(
+                    ApiErrorResponse.from(new ApiError.BadRequest("Validation failed", errors))
+                );
+            case CommandResult.BusinessError(var reason) -> {
+                // roomId가 없을 때만 404, 그 외 정책/상태 충돌은 409로 내려준다.
+                if (reason != null && reason.startsWith("Room not found")) {
+                    yield ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                        ApiErrorResponse.from(new ApiError.NotFound("room", reason))
+                    );
+                }
+                yield ResponseEntity.status(HttpStatus.CONFLICT).body(
+                    ApiErrorResponse.from(new ApiError.Conflict(reason))
+                );
+            }
+        };
     }
 
     @Operation(summary = "참가자 목록", description = "방에 참가한 플레이어 목록을 조회합니다.")

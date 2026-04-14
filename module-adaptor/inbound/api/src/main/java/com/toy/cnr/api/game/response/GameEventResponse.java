@@ -17,6 +17,7 @@ public record GameEventResponse(
             "PLAYER_ARRESTED",
             "PLAYER_RESCUED",
             "PRISON_ESCAPE_WARNING",
+            "RESTRICTED_AREA_ENTERED",
             "ANNOUNCEMENT",
             "GAME_STARTED",
             "GAME_ENDED",
@@ -49,6 +50,15 @@ public record GameEventResponse(
             case GameEvent.PrisonEscapeWarning e -> new GameEventResponse(
                 e.gameId(), "PRISON_ESCAPE_WARNING",
                 Map.of("playerId", e.playerId()),
+                e.timestamp()
+            );
+            case GameEvent.RestrictedAreaEntered e -> new GameEventResponse(
+                e.gameId(), "RESTRICTED_AREA_ENTERED",
+                Map.of(
+                    "playerId", e.playerId(),
+                    "latitude", String.valueOf(e.latitude()),
+                    "longitude", String.valueOf(e.longitude())
+                ),
                 e.timestamp()
             );
             case GameEvent.Announcement e -> new GameEventResponse(

@@ -1,6 +1,7 @@
 package com.toy.cnr.api.room.response;
 
 import com.toy.cnr.domain.room.Room;
+import com.toy.cnr.domain.room.MapZone;
 import com.toy.cnr.domain.room.RoomSettings;
 
 import java.util.List;
@@ -21,8 +22,38 @@ public record RoomDetailResponse(
         int robbersCount,
         int gameDurationMinutes,
         int escapeTimeMinutes,
-        double actionRadiusMeters
+        double actionRadiusMeters,
+        MapZoneResponse mapZone
     ) {
+        public record MapZoneResponse(
+            GeoPointResponse rallyPoint,
+            List<GeoPointResponse> playArea,
+            List<GeoPointResponse> prisonArea,
+            List<GeoPointResponse> restrictedArea
+        ) {
+            public static MapZoneResponse from(MapZone zone) {
+                if (zone == null) return null;
+                return new MapZoneResponse(
+                    GeoPointResponse.from(zone.rallyPoint()),
+                    GeoPointResponse.fromList(zone.playArea()),
+                    GeoPointResponse.fromList(zone.prisonArea()),
+                    GeoPointResponse.fromList(zone.restrictedArea())
+                );
+            }
+        }
+
+        public record GeoPointResponse(double latitude, double longitude) {
+            public static GeoPointResponse from(com.toy.cnr.domain.room.GeoPoint point) {
+                if (point == null) return null;
+                return new GeoPointResponse(point.latitude(), point.longitude());
+            }
+
+            public static List<GeoPointResponse> fromList(List<com.toy.cnr.domain.room.GeoPoint> points) {
+                if (points == null) return null;
+                return points.stream().map(GeoPointResponse::from).toList();
+            }
+        }
+
         public static SettingsResponse from(RoomSettings settings) {
             if (settings == null) return null;
             return new SettingsResponse(
@@ -33,7 +64,8 @@ public record RoomDetailResponse(
                 settings.robbersCount(),
                 settings.gameDurationMinutes(),
                 settings.escapeTimeMinutes(),
-                settings.actionRadiusMeters()
+                settings.actionRadiusMeters(),
+                MapZoneResponse.from(settings.mapZone())
             );
         }
     }
