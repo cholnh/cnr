@@ -63,4 +63,35 @@ public class OAuthUserService {
             case RepositoryResult.Error(var t) -> new CommandResult.BusinessError<>(t.getMessage());
         };
     }
+
+    /**
+     * OAuth 회원가입/로그인 — 미가입 시 가입, 이미 가입된 계정이면 로그인 처리.
+     */
+    public CommandResult<User> registerOrSignInByOAuthCode(String provider, String code) {
+        return switch (oAuthProviderRepository.fetchUserInfo(provider, code)) {
+            case RepositoryResult.Found(var info) -> switch (userAuthOAuthRepository.findByProviderAndOauthId(provider, info.oauthId())) {
+                case RepositoryResult.Found(var ignored) -> findUserByEmail(info.email());
+                case RepositoryResult.NotFound(var ignored) -> userService.createByOAuth(
+                    provider,
+                    info.oauthId(),
+                    info.email(),
+                    info.name(),
+                    code
+                );
+                case RepositoryResult.Error(var t) -> new CommandResult.BusinessError<>(t.getMessage());
+            };
+            case RepositoryResult.NotFound(var msg) -> new CommandResult.BusinessError<>(msg);
+            case RepositoryResult.Error(var t) -> new CommandResult.BusinessError<>(t.getMessage());
+        };
+    }
+
+    private CommandResult<User> findUserByEmail(String email) {
+        return switch (userRepository.findByEmail(email)) {
+            case RepositoryResult.Found(var userDto) -> new CommandResult.Success<>(
+                new User(userDto.id(), userDto.email(), userDto.name(), userDto.nickname(), userDto.createdAt()), null
+            );
+            case RepositoryResult.NotFound(var msg) -> new CommandResult.BusinessError<>(msg);
+            case RepositoryResult.Error(var t) -> new CommandResult.BusinessError<>(t.getMessage());
+        };
+    }
 }

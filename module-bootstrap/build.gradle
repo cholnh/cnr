@@ -18,6 +18,7 @@ dependencies {
     implementation project(':module-adaptor:outbound:external:kakao-oauth-client')
     implementation project(':module-adaptor:outbound:external:naver-map-client')
 
+    testImplementation project(':module-core:port')
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'

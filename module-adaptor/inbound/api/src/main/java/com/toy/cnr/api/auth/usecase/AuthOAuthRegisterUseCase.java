@@ -21,7 +21,7 @@ public class AuthOAuthRegisterUseCase {
     }
 
     public CommandResult<BearerAuthenticationToken> register(String provider, String code) {
-        return oAuthUserService.createByOAuthCode(provider, code)
+        return oAuthUserService.registerOrSignInByOAuthCode(provider, code)
             .map(user -> {
                 var accessToken = JwtUtil.issueAccessToken(user.email());
                 var refreshToken = JwtUtil.issueRefreshToken(user.email());

@@ -2,6 +2,7 @@ package com.toy.cnr.api.common.error;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -26,6 +27,22 @@ public class GlobalExceptionHandler {
         var error = new ApiError.NotFound("resource", ex.getMessage());
         return ResponseEntity
             .status(HttpStatus.NOT_FOUND)
+            .body(ApiErrorResponse.from(error));
+    }
+
+    /**
+     * @Valid 검증 실패 -> 400 BAD_REQUEST
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiErrorResponse> handleMethodArgumentNotValid(
+        MethodArgumentNotValidException ex
+    ) {
+        var errors = ex.getBindingResult().getFieldErrors().stream()
+            .map(field -> field.getField() + ": " + field.getDefaultMessage())
+            .toList();
+        var error = new ApiError.BadRequest("Validation failed", errors);
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
             .body(ApiErrorResponse.from(error));
     }
 

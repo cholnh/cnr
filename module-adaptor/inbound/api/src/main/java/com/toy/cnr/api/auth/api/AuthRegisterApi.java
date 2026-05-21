@@ -82,7 +82,7 @@ public class AuthRegisterApi {
     @Operation(
         summary = "OAuth 회원가입",
         description = "OAuth 인가 코드를 사용하여 회원가입하고 즉시 토큰을 발급합니다. 지원 provider: `kakao`\n"
-            + "- 이미 가입된 계정이면 `400 Bad Request` 를 반환합니다.\n",
+            + "- 이미 가입된 계정이면 동일하게 `200 OK`로 토큰을 발급합니다(로그인 처리).\n",
         tags = "token-api"
     )
     @ApiResponses({

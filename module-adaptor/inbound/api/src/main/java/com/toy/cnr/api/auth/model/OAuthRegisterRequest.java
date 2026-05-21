@@ -11,5 +11,9 @@ public record OAuthRegisterRequest(
 
     @Schema(description = "OAuth 인가 코드", example = "AUTHORIZATION_CODE", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "code 는 필수입니다.")
-    String code
+    String code,
+
+    @Schema(description = "CSRF 방지용 state 값", example = "csrf-state-value", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotBlank(message = "state 는 필수입니다.")
+    String state
 ) {}
