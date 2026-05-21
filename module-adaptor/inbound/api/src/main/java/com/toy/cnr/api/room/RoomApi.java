@@ -34,13 +34,19 @@ public class RoomApi {
         );
     }
 
-    @Operation(summary = "방 상세 조회", description = "방 설정 및 참가자 정보를 조회합니다.")
+    @Operation(
+        summary = "방 상세 조회",
+        description = "방 설정 및 참가자 정보를 조회합니다. 게임 장소는 settings.mapZone (PUT /settings 로 저장)."
+    )
     @GetMapping("/{roomId}")
     public ResponseEntity<RoomDetailResponse> getRoom(@PathVariable String roomId) {
         return ResponseMapper.toResponseEntity(roomUseCase.getRoom(roomId));
     }
 
-    @Operation(summary = "방 설정 변경", description = "방 설정을 변경합니다. 방장만 가능합니다.")
+    @Operation(
+        summary = "방 설정 변경",
+        description = "방 설정을 변경합니다. 방장만 가능. mapZone 으로 게임 장소(좌표) 저장."
+    )
     @PutMapping("/{roomId}/settings")
     public ResponseEntity<RoomDetailResponse> updateSettings(
         @PathVariable String roomId,

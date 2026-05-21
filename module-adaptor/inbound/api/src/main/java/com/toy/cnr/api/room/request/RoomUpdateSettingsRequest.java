@@ -13,8 +13,10 @@ public record RoomUpdateSettingsRequest(
     int gameDurationMinutes,
     int escapeTimeMinutes,
     double actionRadiusMeters,
+    /** 게임 장소 좌표. null 이면 서버가 기존 mapZone 유지(다른 설정만 변경). */
     MapZoneRequest mapZone
 ) {
+    /** 집결지·활동/감옥/제한 구역 (EPSG:4326 위·경도). */
     public record MapZoneRequest(
         GeoPointRequest rallyPoint,
         List<GeoPointRequest> playArea,

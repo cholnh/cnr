@@ -1,11 +1,15 @@
 package com.toy.cnr.api.room.response;
 
-import com.toy.cnr.domain.room.Room;
 import com.toy.cnr.domain.room.MapZone;
+import com.toy.cnr.domain.room.Room;
 import com.toy.cnr.domain.room.RoomSettings;
 
 import java.util.List;
 
+/**
+ * GET /v1/rooms/{roomId} 응답.
+ * 게임 장소는 settings.mapZone (PUT /settings 로 저장된 좌표).
+ */
 public record RoomDetailResponse(
     String roomId,
     String hostId,
@@ -23,8 +27,10 @@ public record RoomDetailResponse(
         int gameDurationMinutes,
         int escapeTimeMinutes,
         double actionRadiusMeters,
+        /** 게임 장소(집결지·활동/감옥/제한 구역). 미저장 시 null. */
         MapZoneResponse mapZone
     ) {
+        /** 네이버 맵 등에서 그린 구역 — 위·경도만 저장 (주소 문자열은 별도 API). */
         public record MapZoneResponse(
             GeoPointResponse rallyPoint,
             List<GeoPointResponse> playArea,
@@ -49,7 +55,7 @@ public record RoomDetailResponse(
             }
 
             public static List<GeoPointResponse> fromList(List<com.toy.cnr.domain.room.GeoPoint> points) {
-                if (points == null) return null;
+                if (points == null || points.isEmpty()) return null;
                 return points.stream().map(GeoPointResponse::from).toList();
             }
         }
