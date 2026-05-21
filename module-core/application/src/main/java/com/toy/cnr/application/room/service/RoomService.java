@@ -53,25 +53,29 @@ public class RoomService {
         return new CommandResult.Success<>(room, "Room created: " + roomId);
     }
 
+    /** 방 상세 조회 — settings.mapZone. */
     public CommandResult<Room> getRoom(String roomId) {
-        return ResultMapper.toCommandResult(roomStore.getRoom(roomId))
-            .map(RoomMapper::toDomain);
+        return loadRoom(roomId);
     }
 
+    /**
+     * 방 설정 변경.
+     * PUT /v1/rooms/{roomId}/settings 의 mapZone 이 Redis settings 에 저장됨.
+     */
     public CommandResult<Room> updateSettings(RoomUpdateSettingsCommand command) {
-        var roomResult = roomStore.getRoom(command.roomId());
-        return ResultMapper.toCommandResult(roomResult).flatMap(dto -> {
-            var room = RoomMapper.toDomain(dto);
+        return loadRoom(command.roomId()).flatMap(room -> {
             if (!room.hostId().equals(command.requesterId())) {
                 return new CommandResult.BusinessError<>("Only the host can update settings");
             }
             if (room.status() != RoomStatus.WAITING) {
                 return new CommandResult.BusinessError<>("Settings can only be changed while waiting");
             }
+            // mapZone 미전송 시 기존 게임 장소 유지 (인원·시간만 변경할 때)
+            var mergedSettings = mergeSettings(room.settings(), command.settings());
             var updated = new Room(
                 room.roomId(),
                 room.hostId(),
-                command.settings(),
+                mergedSettings,
                 room.status(),
                 room.players(),
                 room.createdAt()
@@ -104,10 +108,7 @@ public class RoomService {
                 System.currentTimeMillis()
             );
             var addResult = roomStore.addPlayer(command.roomId(), RoomMapper.toPlayerDto(newPlayer));
-            return ResultMapper.toCommandResult(addResult).flatMap(v ->
-                ResultMapper.toCommandResult(roomStore.getRoom(command.roomId()))
-                    .map(RoomMapper::toDomain)
-            );
+            return ResultMapper.toCommandResult(addResult).flatMap(v -> loadRoom(command.roomId()));
         });
     }
 
@@ -150,11 +151,48 @@ public class RoomService {
                 );
             }
             var updateResult = roomStore.updateStatus(command.roomId(), RoomStatus.IN_GAME.name());
-            return ResultMapper.toCommandResult(updateResult).flatMap(v ->
-                ResultMapper.toCommandResult(roomStore.getRoom(command.roomId()))
-                    .map(RoomMapper::toDomain)
-            );
+            return ResultMapper.toCommandResult(updateResult).flatMap(v -> loadRoom(command.roomId()));
         });
+    }
+
+    /**
+     * Redis 방 메타(room:data) + 참가자 해시(room:players) 를 합쳐 Room 반환.
+     * settings 에 저장된 mapZone 이 toDomain() 으로 복원됨.
+     */
+    private CommandResult<Room> loadRoom(String roomId) {
+        return ResultMapper.toCommandResult(roomStore.getRoom(roomId))
+            .flatMap(dto -> ResultMapper.toCommandResult(roomStore.getPlayers(roomId))
+                .map(playerDtos -> {
+                    var room = RoomMapper.toDomain(dto); // mapZone 포함
+                    var players = playerDtos.stream().map(RoomMapper::toPlayer).toList();
+                    return new Room(
+                        room.roomId(),
+                        room.hostId(),
+                        room.settings(),
+                        room.status(),
+                        players,
+                        room.createdAt()
+                    );
+                })
+            );
+    }
+
+    /**
+     * 설정 병합. incoming.mapZone == null 이면 기존 장소 유지, non-null 이면 새 좌표로 교체.
+     */
+    private static RoomSettings mergeSettings(RoomSettings existing, RoomSettings incoming) {
+        var mapZone = incoming.mapZone() != null ? incoming.mapZone() : existing.mapZone();
+        return new RoomSettings(
+            incoming.gameMode(),
+            incoming.minPlayers(),
+            incoming.maxPlayers(),
+            incoming.copsCount(),
+            incoming.robbersCount(),
+            incoming.gameDurationMinutes(),
+            incoming.escapeTimeMinutes(),
+            incoming.actionRadiusMeters(),
+            mapZone
+        );
     }
 
     private String generateRoomId() {

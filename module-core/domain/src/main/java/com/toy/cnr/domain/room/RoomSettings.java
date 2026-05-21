@@ -11,7 +11,7 @@ package com.toy.cnr.domain.room;
  * @param gameDurationMinutes  게임 시간 (분)
  * @param escapeTimeMinutes    도둑 도망 시간 (분, 게임 시작 후 경찰이 움직이지 못하는 시간)
  * @param actionRadiusMeters   체포/구출/보석 획득 가능 거리 (미터, 기본값 1m)
- * @param mapZone              맵 구역 설정
+ * @param mapZone              게임 장소(집결지·활동/감옥/제한 구역 좌표). PUT /v1/rooms/{id}/settings 로 저장
  */
 public record RoomSettings(
     GameMode gameMode,

@@ -72,6 +72,20 @@ class RoomServiceTest {
         );
     }
 
+    private void stubPlayersFromRoom(RoomDto dto) {
+        when(roomStore.getPlayers(ROOM_ID)).thenReturn(new RepositoryResult.Found<>(dto.players()));
+    }
+
+    private static RoomSettingsDto settingsDtoWithMapZone() {
+        return new RoomSettingsDto(
+            "BASIC", 2, 10, 1, 1, 10, 1, 1.0,
+            new RoomSettingsDto.GeoPointDto(37.4979, 127.0276),
+            List.of(new RoomSettingsDto.GeoPointDto(37.4980, 127.0280)),
+            null,
+            null
+        );
+    }
+
     private static RoomDto fullRoomDto() {
         // maxPlayers=10, players already at max
         List<RoomPlayerDto> players = new ArrayList<>();
@@ -142,7 +156,9 @@ class RoomServiceTest {
         @Test
         @DisplayName("[성공] 정상 조회 → 올바른 Room 반환")
         void getRoom_success() {
-            when(roomStore.getRoom(ROOM_ID)).thenReturn(new RepositoryResult.Found<>(waitingRoomDto()));
+            var dto = waitingRoomDto();
+            when(roomStore.getRoom(ROOM_ID)).thenReturn(new RepositoryResult.Found<>(dto));
+            stubPlayersFromRoom(dto);
 
             var result = roomService.getRoom(ROOM_ID);
 
@@ -151,6 +167,25 @@ class RoomServiceTest {
             assertEquals(ROOM_ID, room.roomId());
             assertEquals(HOST_ID, room.hostId());
             assertEquals(RoomStatus.WAITING, room.status());
+        }
+
+        @Test
+        @DisplayName("[성공] mapZone이 저장된 방 → settings.mapZone 반환")
+        void getRoom_withMapZone_returnsMapZone() {
+            var dto = new RoomDto(
+                ROOM_ID, HOST_ID, settingsDtoWithMapZone(), "WAITING",
+                List.of(hostPlayerDto()), System.currentTimeMillis()
+            );
+            when(roomStore.getRoom(ROOM_ID)).thenReturn(new RepositoryResult.Found<>(dto));
+            stubPlayersFromRoom(dto);
+
+            var result = roomService.getRoom(ROOM_ID);
+
+            assertInstanceOf(CommandResult.Success.class, result);
+            var zone = ((CommandResult.Success<Room>) result).data().settings().mapZone();
+            assertNotNull(zone);
+            assertEquals(37.4979, zone.rallyPoint().latitude());
+            assertEquals(1, zone.playArea().size());
         }
 
         @Test
@@ -190,7 +225,9 @@ class RoomServiceTest {
         @Test
         @DisplayName("[성공] 방장이 WAITING 상태에서 설정 변경")
         void updateSettings_success() {
-            when(roomStore.getRoom(ROOM_ID)).thenReturn(new RepositoryResult.Found<>(waitingRoomDto()));
+            var dto = waitingRoomDto();
+            when(roomStore.getRoom(ROOM_ID)).thenReturn(new RepositoryResult.Found<>(dto));
+            stubPlayersFromRoom(dto);
             when(roomStore.saveRoom(any())).thenReturn(new RepositoryResult.Found<>(null));
 
             var command = new RoomUpdateSettingsCommand(ROOM_ID, HOST_ID, newSettings);
@@ -202,9 +239,55 @@ class RoomServiceTest {
         }
 
         @Test
+        @DisplayName("[성공] mapZone 없이 다른 설정만 변경 → 기존 mapZone 유지")
+        void updateSettings_withoutMapZone_preservesExistingMapZone() {
+            var dto = new RoomDto(
+                ROOM_ID, HOST_ID, settingsDtoWithMapZone(), "WAITING",
+                List.of(hostPlayerDto()), System.currentTimeMillis()
+            );
+            when(roomStore.getRoom(ROOM_ID)).thenReturn(new RepositoryResult.Found<>(dto));
+            stubPlayersFromRoom(dto);
+            when(roomStore.saveRoom(any())).thenReturn(new RepositoryResult.Found<>(null));
+
+            var incoming = new RoomSettings(GameMode.BASIC, 3, 8, 2, 2, 15, 2, 2.0, null);
+            var result = roomService.updateSettings(new RoomUpdateSettingsCommand(ROOM_ID, HOST_ID, incoming));
+
+            assertInstanceOf(CommandResult.Success.class, result);
+            var zone = ((CommandResult.Success<Room>) result).data().settings().mapZone();
+            assertNotNull(zone);
+            assertEquals(37.4979, zone.rallyPoint().latitude());
+        }
+
+        @Test
+        @DisplayName("[성공] mapZone 포함 설정 변경 → mapZone 저장")
+        void updateSettings_withMapZone_savesMapZone() {
+            var dto = waitingRoomDto();
+            when(roomStore.getRoom(ROOM_ID)).thenReturn(new RepositoryResult.Found<>(dto));
+            stubPlayersFromRoom(dto);
+            when(roomStore.saveRoom(any())).thenReturn(new RepositoryResult.Found<>(null));
+
+            var zone = new MapZone(
+                new GeoPoint(37.5, 127.0),
+                List.of(new GeoPoint(37.51, 127.01)),
+                List.of(),
+                List.of()
+            );
+            var incoming = new RoomSettings(GameMode.BASIC, 2, 10, 1, 1, 10, 1, 1.0, zone);
+            var result = roomService.updateSettings(new RoomUpdateSettingsCommand(ROOM_ID, HOST_ID, incoming));
+
+            assertInstanceOf(CommandResult.Success.class, result);
+            var saved = ((CommandResult.Success<Room>) result).data().settings().mapZone();
+            assertNotNull(saved);
+            assertEquals(37.5, saved.rallyPoint().latitude());
+            assertEquals(1, saved.playArea().size());
+        }
+
+        @Test
         @DisplayName("[실패] 방장이 아닌 사람이 변경 시도 → BusinessError")
         void updateSettings_notHost() {
-            when(roomStore.getRoom(ROOM_ID)).thenReturn(new RepositoryResult.Found<>(waitingRoomDto()));
+            var dto = waitingRoomDto();
+            when(roomStore.getRoom(ROOM_ID)).thenReturn(new RepositoryResult.Found<>(dto));
+            stubPlayersFromRoom(dto);
 
             var command = new RoomUpdateSettingsCommand(ROOM_ID, "other-player", newSettings);
             var result = roomService.updateSettings(command);
@@ -219,7 +302,9 @@ class RoomServiceTest {
         @Test
         @DisplayName("[실패] IN_GAME 상태에서 변경 시도 → BusinessError")
         void updateSettings_inGameStatus() {
-            when(roomStore.getRoom(ROOM_ID)).thenReturn(new RepositoryResult.Found<>(inGameRoomDto()));
+            var dto = inGameRoomDto();
+            when(roomStore.getRoom(ROOM_ID)).thenReturn(new RepositoryResult.Found<>(dto));
+            stubPlayersFromRoom(dto);
 
             var command = new RoomUpdateSettingsCommand(ROOM_ID, HOST_ID, newSettings);
             var result = roomService.updateSettings(command);
@@ -256,18 +341,13 @@ class RoomServiceTest {
         @Test
         @DisplayName("[성공] 정상 입장 → 플레이어가 추가된 Room 반환")
         void joinRoom_success() {
-            var afterJoinDto = new RoomDto(
-                ROOM_ID, HOST_ID, defaultSettingsDto(), "WAITING",
-                List.of(
-                    hostPlayerDto(),
-                    new RoomPlayerDto(PLAYER_ID, PLAYER_NAME, false, System.currentTimeMillis())
-                ),
-                System.currentTimeMillis()
+            var playersAfterJoin = List.of(
+                hostPlayerDto(),
+                new RoomPlayerDto(PLAYER_ID, PLAYER_NAME, false, System.currentTimeMillis())
             );
-            when(roomStore.getRoom(ROOM_ID))
-                .thenReturn(new RepositoryResult.Found<>(waitingRoomDto()))
-                .thenReturn(new RepositoryResult.Found<>(afterJoinDto));
+            when(roomStore.getRoom(ROOM_ID)).thenReturn(new RepositoryResult.Found<>(waitingRoomDto()));
             when(roomStore.addPlayer(eq(ROOM_ID), any())).thenReturn(new RepositoryResult.Found<>(null));
+            when(roomStore.getPlayers(ROOM_ID)).thenReturn(new RepositoryResult.Found<>(playersAfterJoin));
 
             var result = roomService.joinRoom(command);
 
@@ -436,6 +516,7 @@ class RoomServiceTest {
             when(roomStore.getRoom(ROOM_ID))
                 .thenReturn(new RepositoryResult.Found<>(twoPlayerRoom))
                 .thenReturn(new RepositoryResult.Found<>(inGameRoom));
+            when(roomStore.getPlayers(ROOM_ID)).thenReturn(new RepositoryResult.Found<>(twoPlayerRoom.players()));
             when(roomStore.updateStatus(ROOM_ID, "IN_GAME")).thenReturn(new RepositoryResult.Found<>(null));
 
             var result = roomService.startGame(command);

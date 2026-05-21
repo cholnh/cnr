@@ -52,6 +52,7 @@ public final class RoomMapper {
         );
     }
 
+    /** 도메인 mapZone → Redis 저장용 flat 좌표 필드(rallyPoint, playArea, …). */
     public static RoomSettingsDto toSettingsDto(RoomSettings settings) {
         if (settings == null) {
             return null;
@@ -87,12 +88,13 @@ public final class RoomMapper {
         );
     }
 
+    /** Redis settings JSON → 도메인 RoomSettings (mapZone 복원). */
     public static RoomSettings toSettings(RoomSettingsDto dto) {
         if (dto == null) {
             return RoomSettings.defaultSettings();
         }
         MapZone zone = null;
-        if (dto.rallyPoint() != null || dto.playArea() != null) {
+        if (hasMapZoneData(dto)) {
             zone = new MapZone(
                 dto.rallyPoint() != null
                     ? new GeoPoint(dto.rallyPoint().latitude(), dto.rallyPoint().longitude())
@@ -125,5 +127,17 @@ public final class RoomMapper {
             dto.actionRadiusMeters(),
             zone
         );
+    }
+
+    /** 좌표 필드 중 하나라도 있으면 mapZone 으로 조립. */
+    private static boolean hasMapZoneData(RoomSettingsDto dto) {
+        return dto.rallyPoint() != null
+            || hasGeoPoints(dto.playArea())
+            || hasGeoPoints(dto.prisonArea())
+            || hasGeoPoints(dto.restrictedArea());
+    }
+
+    private static boolean hasGeoPoints(List<RoomSettingsDto.GeoPointDto> points) {
+        return points != null && !points.isEmpty();
     }
 }
