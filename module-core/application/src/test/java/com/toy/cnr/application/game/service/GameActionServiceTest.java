@@ -83,21 +83,21 @@ class GameActionServiceTest {
 
     private static InGamePlayerDto copsDto() {
         return new InGamePlayerDto(
-            COPS_ID, COPS_NAME, PlayerRole.COPS.name(), PlayerStatus.ACTIVE.name(),
+            COPS_ID, COPS_NAME, PlayerRole.POLICE.name(), PlayerStatus.ACTIVE.name(),
             0, 0, 0, 0, System.currentTimeMillis()
         );
     }
 
     private static InGamePlayerDto robberDto() {
         return new InGamePlayerDto(
-            ROBBER_ID, ROBBER_NAME, PlayerRole.ROBBERS.name(), PlayerStatus.ACTIVE.name(),
+            ROBBER_ID, ROBBER_NAME, PlayerRole.THIEF.name(), PlayerStatus.ACTIVE.name(),
             0, 0, 0, 0, System.currentTimeMillis()
         );
     }
 
     private static InGamePlayerDto arrestedRobberDto() {
         return new InGamePlayerDto(
-            ROBBER_ID, ROBBER_NAME, PlayerRole.ROBBERS.name(), PlayerStatus.ARRESTED.name(),
+            ROBBER_ID, ROBBER_NAME, PlayerRole.THIEF.name(), PlayerStatus.ARRESTED.name(),
             0, 0, 0, 0, System.currentTimeMillis()
         );
     }
@@ -176,7 +176,7 @@ class GameActionServiceTest {
         void arrest_success() {
             // 아직 체포되지 않은 다른 도둑이 존재 → 게임 종료 조건 미충족
             var activeRobber2 = new InGamePlayerDto(
-                "robber-002", "Robber2", PlayerRole.ROBBERS.name(), PlayerStatus.ACTIVE.name(),
+                "robber-002", "Robber2", PlayerRole.THIEF.name(), PlayerStatus.ACTIVE.name(),
                 0, 0, 0, 0, System.currentTimeMillis()
             );
             when(inGamePlayerStore.getPlayer(GAME_ID, COPS_ID)).thenReturn(new RepositoryResult.Found<>(copsDto()));
@@ -215,7 +215,7 @@ class GameActionServiceTest {
         }
 
         @Test
-        @DisplayName("[성공] 마지막 도둑 체포 → gameTimerService.endGame(COPS) 호출")
+        @DisplayName("[성공] 마지막 도둑 체포 → gameTimerService.endGame(POLICE) 호출")
         void arrest_lastRobber_endsGame() {
             when(inGamePlayerStore.getPlayer(GAME_ID, COPS_ID)).thenReturn(new RepositoryResult.Found<>(copsDto()));
             when(inGamePlayerStore.getPlayer(GAME_ID, ROBBER_ID)).thenReturn(new RepositoryResult.Found<>(robberDto()));
@@ -230,14 +230,14 @@ class GameActionServiceTest {
 
             gameActionService.arrest(command);
 
-            verify(gameTimerService).endGame(GAME_ID, PlayerRole.COPS.name());
+            verify(gameTimerService).endGame(GAME_ID, PlayerRole.POLICE.name());
         }
 
         @Test
         @DisplayName("[실패] 경찰 역할이 아닌 플레이어가 체포 시도 → BusinessError")
         void arrest_notCops() {
             var robberAsCops = new InGamePlayerDto(
-                COPS_ID, COPS_NAME, PlayerRole.ROBBERS.name(), PlayerStatus.ACTIVE.name(),
+                COPS_ID, COPS_NAME, PlayerRole.THIEF.name(), PlayerStatus.ACTIVE.name(),
                 0, 0, 0, 0, System.currentTimeMillis()
             );
             when(inGamePlayerStore.getPlayer(GAME_ID, COPS_ID)).thenReturn(new RepositoryResult.Found<>(robberAsCops));
@@ -252,7 +252,7 @@ class GameActionServiceTest {
         @DisplayName("[실패] ACTIVE 상태가 아닌 경찰이 체포 시도 → BusinessError")
         void arrest_copsNotActive() {
             var inactiveCops = new InGamePlayerDto(
-                COPS_ID, COPS_NAME, PlayerRole.COPS.name(), PlayerStatus.ARRESTED.name(),
+                COPS_ID, COPS_NAME, PlayerRole.POLICE.name(), PlayerStatus.ARRESTED.name(),
                 0, 0, 0, 0, System.currentTimeMillis()
             );
             when(inGamePlayerStore.getPlayer(GAME_ID, COPS_ID)).thenReturn(new RepositoryResult.Found<>(inactiveCops));
@@ -267,7 +267,7 @@ class GameActionServiceTest {
         @DisplayName("[실패] 타겟이 도둑 역할이 아님 → BusinessError")
         void arrest_targetNotRobber() {
             var copsAsTarget = new InGamePlayerDto(
-                ROBBER_ID, ROBBER_NAME, PlayerRole.COPS.name(), PlayerStatus.ACTIVE.name(),
+                ROBBER_ID, ROBBER_NAME, PlayerRole.POLICE.name(), PlayerStatus.ACTIVE.name(),
                 0, 0, 0, 0, System.currentTimeMillis()
             );
             when(inGamePlayerStore.getPlayer(GAME_ID, COPS_ID)).thenReturn(new RepositoryResult.Found<>(copsDto()));
@@ -321,7 +321,7 @@ class GameActionServiceTest {
 
         private InGamePlayerDto rescuerDto() {
             return new InGamePlayerDto(
-                RESCUER_ID, RESCUER_NAME, PlayerRole.ROBBERS.name(), PlayerStatus.ACTIVE.name(),
+                RESCUER_ID, RESCUER_NAME, PlayerRole.THIEF.name(), PlayerStatus.ACTIVE.name(),
                 0, 0, 0, 0, System.currentTimeMillis()
             );
         }
@@ -363,7 +363,7 @@ class GameActionServiceTest {
         @DisplayName("[실패] 구출자가 도둑 역할이 아님 → BusinessError")
         void rescue_rescuerNotRobber() {
             var copsAsRescuer = new InGamePlayerDto(
-                RESCUER_ID, RESCUER_NAME, PlayerRole.COPS.name(), PlayerStatus.ACTIVE.name(),
+                RESCUER_ID, RESCUER_NAME, PlayerRole.POLICE.name(), PlayerStatus.ACTIVE.name(),
                 0, 0, 0, 0, System.currentTimeMillis()
             );
             when(inGamePlayerStore.getPlayer(GAME_ID, RESCUER_ID)).thenReturn(new RepositoryResult.Found<>(copsAsRescuer));
@@ -378,7 +378,7 @@ class GameActionServiceTest {
         @DisplayName("[실패] 구출자가 ACTIVE 상태가 아님(체포됨) → BusinessError")
         void rescue_rescuerNotActive() {
             var arrestedRescuer = new InGamePlayerDto(
-                RESCUER_ID, RESCUER_NAME, PlayerRole.ROBBERS.name(), PlayerStatus.ARRESTED.name(),
+                RESCUER_ID, RESCUER_NAME, PlayerRole.THIEF.name(), PlayerStatus.ARRESTED.name(),
                 0, 0, 0, 0, System.currentTimeMillis()
             );
             when(inGamePlayerStore.getPlayer(GAME_ID, RESCUER_ID)).thenReturn(new RepositoryResult.Found<>(arrestedRescuer));
@@ -459,7 +459,7 @@ class GameActionServiceTest {
         @DisplayName("[실패] 도둑 역할이 아닌 플레이어가 보석 획득 시도 → BusinessError")
         void collectGem_notRobber() {
             var copsDto = new InGamePlayerDto(
-                ROBBER_ID, ROBBER_NAME, PlayerRole.COPS.name(), PlayerStatus.ACTIVE.name(),
+                ROBBER_ID, ROBBER_NAME, PlayerRole.POLICE.name(), PlayerStatus.ACTIVE.name(),
                 0, 0, 0, 0, System.currentTimeMillis()
             );
             when(inGamePlayerStore.getPlayer(GAME_ID, ROBBER_ID)).thenReturn(new RepositoryResult.Found<>(copsDto));

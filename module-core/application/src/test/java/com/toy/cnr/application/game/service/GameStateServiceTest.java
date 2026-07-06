@@ -57,14 +57,14 @@ class GameStateServiceTest {
 
     private static InGamePlayerDto copsPlayerDto() {
         return new InGamePlayerDto(
-            PLAYER_ID, PLAYER_NAME, PlayerRole.COPS.name(), PlayerStatus.ACTIVE.name(),
+            PLAYER_ID, PLAYER_NAME, PlayerRole.POLICE.name(), PlayerStatus.ACTIVE.name(),
             2, 0, 0, 0, System.currentTimeMillis()
         );
     }
 
     private static InGamePlayerDto robberPlayerDto() {
         return new InGamePlayerDto(
-            "robber-001", "RobberOne", PlayerRole.ROBBERS.name(), PlayerStatus.ARRESTED.name(),
+            "robber-001", "RobberOne", PlayerRole.THIEF.name(), PlayerStatus.ARRESTED.name(),
             0, 3, 1, 0, System.currentTimeMillis()
         );
     }
@@ -138,12 +138,12 @@ class GameStateServiceTest {
             var players = ((CommandResult.Success<List<InGamePlayer>>) result).data();
             assertEquals(2, players.size());
 
-            var cops = players.stream().filter(p -> p.role() == PlayerRole.COPS).findFirst().orElseThrow();
+            var cops = players.stream().filter(p -> p.role() == PlayerRole.POLICE).findFirst().orElseThrow();
             assertEquals(PLAYER_ID, cops.playerId());
             assertEquals(PlayerStatus.ACTIVE, cops.status());
             assertEquals(2, cops.stats().arrestCount());
 
-            var robber = players.stream().filter(p -> p.role() == PlayerRole.ROBBERS).findFirst().orElseThrow();
+            var robber = players.stream().filter(p -> p.role() == PlayerRole.THIEF).findFirst().orElseThrow();
             assertEquals(PlayerStatus.ARRESTED, robber.status());
             assertEquals(3, robber.stats().gemsCollected());
         }
@@ -203,7 +203,7 @@ class GameStateServiceTest {
             var player = ((CommandResult.Success<InGamePlayer>) result).data();
             assertEquals(PLAYER_ID, player.playerId());
             assertEquals(PLAYER_NAME, player.playerName());
-            assertEquals(PlayerRole.COPS, player.role());
+            assertEquals(PlayerRole.POLICE, player.role());
             assertEquals(PlayerStatus.ACTIVE, player.status());
         }
 

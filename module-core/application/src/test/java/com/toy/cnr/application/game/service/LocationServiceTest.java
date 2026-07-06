@@ -85,14 +85,14 @@ class LocationServiceTest {
 
     private static InGamePlayerDto activePlayerDto() {
         return new InGamePlayerDto(
-            PLAYER_ID, "Player", PlayerRole.ROBBERS.name(), PlayerStatus.ACTIVE.name(),
+            PLAYER_ID, "Player", PlayerRole.THIEF.name(), PlayerStatus.ACTIVE.name(),
             0, 0, 0, 0, System.currentTimeMillis()
         );
     }
 
     private static InGamePlayerDto arrestedPlayerDto() {
         return new InGamePlayerDto(
-            PLAYER_ID, "Player", PlayerRole.ROBBERS.name(), PlayerStatus.ARRESTED.name(),
+            PLAYER_ID, "Player", PlayerRole.THIEF.name(), PlayerStatus.ARRESTED.name(),
             0, 0, 0, 0, System.currentTimeMillis()
         );
     }

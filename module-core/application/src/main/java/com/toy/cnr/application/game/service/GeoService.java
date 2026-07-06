@@ -56,7 +56,7 @@ public class GeoService {
 
         var copsResult = inGamePlayerStore.getPlayer(gameId, copsPlayerId);
         return ResultMapper.toCommandResult(copsResult).flatMap(cops -> {
-            if (!cops.role().equals(PlayerRole.COPS.name())) {
+            if (!cops.role().equals(PlayerRole.POLICE.name())) {
                 return new CommandResult.BusinessError<>("Only cops can query robbers nearby");
             }
 
@@ -67,7 +67,7 @@ public class GeoService {
 
             List<RobberNearby> nearby = new ArrayList<>();
             for (var player : found.data()) {
-                if (!player.role().equals(PlayerRole.ROBBERS.name())) {
+                if (!player.role().equals(PlayerRole.THIEF.name())) {
                     continue;
                 }
                 if (!player.status().equals(PlayerStatus.ACTIVE.name())) {

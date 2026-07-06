@@ -92,14 +92,14 @@ class GameEventServiceTest {
         @Test
         @DisplayName("[성공] GameEnded 이벤트 발행 → winnerRole 페이로드 포함")
         void publish_gameEnded() {
-            var event = new GameEvent.GameEnded(GAME_ID, "COPS", TIMESTAMP);
+            var event = new GameEvent.GameEnded(GAME_ID, "POLICE", TIMESTAMP);
 
             gameEventService.publish(event);
 
             var captor = ArgumentCaptor.forClass(GameEventDto.class);
             verify(publisher).publish(eq(GAME_ID), captor.capture());
             assertEquals("GAME_ENDED", captor.getValue().type());
-            assertEquals("COPS", captor.getValue().data().get("winnerRole"));
+            assertEquals("POLICE", captor.getValue().data().get("winnerRole"));
         }
     }
 

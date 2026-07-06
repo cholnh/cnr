@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
  * 게임 시작 시 두 개의 타이머를 등록합니다:
  * <ol>
  *   <li>escape timer: escapeTimeMinutes 후 ESCAPE_PHASE → PLAYING 전환</li>
- *   <li>end timer: gameDurationMinutes 후 게임이 아직 PLAYING이면 ENDED + GameEnded(ROBBERS) 발행</li>
+ *   <li>end timer: gameDurationMinutes 후 게임이 아직 PLAYING이면 ENDED + GameEnded(THIEF) 발행</li>
  * </ol>
  */
 @Service
@@ -61,7 +61,7 @@ public class GameTimerService {
             var result = gameStateStore.getGameState(gameId);
             if (result instanceof RepositoryResult.Found<GameStateDto> found
                 && found.data().status().equals(GameStatus.PLAYING.name())) {
-                endGame(gameId, PlayerRole.ROBBERS.name());
+                endGame(gameId, PlayerRole.THIEF.name());
             }
         });
     }
@@ -71,7 +71,7 @@ public class GameTimerService {
      * 등록된 타이머를 취소하고 ENDED 상태로 전환 후 GameEnded 이벤트를 발행합니다.
      *
      * @param gameId     게임 ID
-     * @param winnerRole 승리 역할 이름 ("COPS" 또는 "ROBBERS")
+     * @param winnerRole 승리 역할 이름 ("POLICE" 또는 "THIEF")
      */
     public void endGame(String gameId, String winnerRole) {
         cancelTimers(gameId);

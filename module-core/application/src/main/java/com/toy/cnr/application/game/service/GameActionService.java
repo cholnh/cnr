@@ -81,7 +81,7 @@ public class GameActionService {
 
         for (int i = 0; i < shuffled.size(); i++) {
             var player = shuffled.get(i);
-            var role = i < copsCount ? PlayerRole.COPS : PlayerRole.ROBBERS;
+            var role = i < copsCount ? PlayerRole.POLICE : PlayerRole.THIEF;
             var inGamePlayer = new InGamePlayerDto(
                 player.playerId(),
                 player.playerName(),
@@ -125,7 +125,7 @@ public class GameActionService {
         // Validate cops
         var copsResult = inGamePlayerStore.getPlayer(command.gameId(), command.copsId());
         return ResultMapper.toCommandResult(copsResult).flatMap(copsDto -> {
-            if (!copsDto.role().equals(PlayerRole.COPS.name())) {
+            if (!copsDto.role().equals(PlayerRole.POLICE.name())) {
                 return new CommandResult.BusinessError<>("Only cops can arrest");
             }
             if (!copsDto.status().equals(PlayerStatus.ACTIVE.name())) {
@@ -135,7 +135,7 @@ public class GameActionService {
             // Validate robber
             var robberResult = inGamePlayerStore.getPlayer(command.gameId(), command.robberId());
             return ResultMapper.toCommandResult(robberResult).flatMap(robberDto -> {
-                if (!robberDto.role().equals(PlayerRole.ROBBERS.name())) {
+                if (!robberDto.role().equals(PlayerRole.THIEF.name())) {
                     return new CommandResult.BusinessError<>("Target is not a robber");
                 }
                 if (!robberDto.status().equals(PlayerStatus.ACTIVE.name())) {
@@ -200,7 +200,7 @@ public class GameActionService {
     public CommandResult<Void> rescue(RescueCommand command) {
         var rescuerResult = inGamePlayerStore.getPlayer(command.gameId(), command.rescuerId());
         return ResultMapper.toCommandResult(rescuerResult).flatMap(rescuerDto -> {
-            if (!rescuerDto.role().equals(PlayerRole.ROBBERS.name())) {
+            if (!rescuerDto.role().equals(PlayerRole.THIEF.name())) {
                 return new CommandResult.BusinessError<>("Only robbers can rescue");
             }
             if (!rescuerDto.status().equals(PlayerStatus.ACTIVE.name())) {
@@ -266,7 +266,7 @@ public class GameActionService {
     public CommandResult<Void> collectGem(CollectGemCommand command) {
         var playerResult = inGamePlayerStore.getPlayer(command.gameId(), command.robberId());
         return ResultMapper.toCommandResult(playerResult).flatMap(playerDto -> {
-            if (!playerDto.role().equals(PlayerRole.ROBBERS.name())) {
+            if (!playerDto.role().equals(PlayerRole.THIEF.name())) {
                 return new CommandResult.BusinessError<>("Only robbers can collect gems");
             }
             if (!playerDto.status().equals(PlayerStatus.ACTIVE.name())) {
@@ -349,11 +349,11 @@ public class GameActionService {
         }
         var players = found.data();
         boolean allRobbersArrested = players.stream()
-            .filter(p -> p.role().equals(PlayerRole.ROBBERS.name()))
+            .filter(p -> p.role().equals(PlayerRole.THIEF.name()))
             .allMatch(p -> p.status().equals(PlayerStatus.ARRESTED.name()));
 
         if (allRobbersArrested) {
-            gameTimerService.endGame(gameId, PlayerRole.COPS.name());
+            gameTimerService.endGame(gameId, PlayerRole.POLICE.name());
         }
     }
 

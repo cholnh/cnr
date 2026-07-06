@@ -42,7 +42,7 @@ public class GameEventApi {
             | ANNOUNCEMENT           | 방장 공지                     | senderId, message                    |
             | GAME_STARTED           | 게임 시작                     | -                                    |
             | GAME_ENDED             | 게임 종료                     | winnerRole                           |
-            | ROLE_ASSIGNED          | 인게임 역할 배정               | playerId, role (COPS / ROBBERS)      |
+            | ROLE_ASSIGNED          | 인게임 역할 배정               | playerId, role (POLICE / THIEF)      |
             """,
         responses = {
             @ApiResponse(
