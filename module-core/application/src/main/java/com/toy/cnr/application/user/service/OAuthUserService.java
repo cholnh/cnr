@@ -28,8 +28,8 @@ public class OAuthUserService {
         this.userRepository = userRepository;
     }
 
-    public CommandResult<User> findByOAuthCode(String provider, String code) {
-        return switch (oAuthProviderRepository.fetchUserInfo(provider, code)) {
+    public CommandResult<User> findByOAuthToken(String provider, String accessToken) {
+        return switch (oAuthProviderRepository.fetchUserInfo(provider, accessToken)) {
             case RepositoryResult.Found(var info) -> switch (userAuthOAuthRepository.findByProviderAndOauthId(provider, info.oauthId())) {
                 case RepositoryResult.Found(var ignored) -> switch (userRepository.findByEmail(info.email())) {
                     case RepositoryResult.Found(var userDto) -> new CommandResult.Success<>(
@@ -46,8 +46,8 @@ public class OAuthUserService {
         };
     }
 
-    public CommandResult<User> createByOAuthCode(String provider, String code) {
-        return switch (oAuthProviderRepository.fetchUserInfo(provider, code)) {
+    public CommandResult<User> createByOAuthToken(String provider, String accessToken) {
+        return switch (oAuthProviderRepository.fetchUserInfo(provider, accessToken)) {
             case RepositoryResult.Found(var info) -> switch (userAuthOAuthRepository.findByProviderAndOauthId(provider, info.oauthId())) {
                 case RepositoryResult.Found(var ignored) -> new CommandResult.BusinessError<>("이미 가입된 사용자입니다.");
                 case RepositoryResult.NotFound(var ignored) -> userService.createByOAuth(
@@ -55,7 +55,7 @@ public class OAuthUserService {
                     info.oauthId(),
                     info.email(),
                     info.name(),
-                    code
+                    accessToken
                 );
                 case RepositoryResult.Error(var t) -> new CommandResult.BusinessError<>(t.getMessage());
             };
@@ -67,8 +67,8 @@ public class OAuthUserService {
     /**
      * OAuth 회원가입/로그인 — 미가입 시 가입, 이미 가입된 계정이면 로그인 처리.
      */
-    public CommandResult<User> registerOrSignInByOAuthCode(String provider, String code) {
-        return switch (oAuthProviderRepository.fetchUserInfo(provider, code)) {
+    public CommandResult<User> registerOrSignInByOAuthToken(String provider, String accessToken) {
+        return switch (oAuthProviderRepository.fetchUserInfo(provider, accessToken)) {
             case RepositoryResult.Found(var info) -> switch (userAuthOAuthRepository.findByProviderAndOauthId(provider, info.oauthId())) {
                 case RepositoryResult.Found(var ignored) -> findUserByEmail(info.email());
                 case RepositoryResult.NotFound(var ignored) -> userService.createByOAuth(
@@ -76,7 +76,7 @@ public class OAuthUserService {
                     info.oauthId(),
                     info.email(),
                     info.name(),
-                    code
+                    accessToken
                 );
                 case RepositoryResult.Error(var t) -> new CommandResult.BusinessError<>(t.getMessage());
             };

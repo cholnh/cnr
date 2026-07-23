@@ -22,14 +22,14 @@ public class OAuthAuthenticationConverter implements AuthenticationConverter {
         try {
             var body = objectMapper.readValue(request.getInputStream(), Map.class);
             var provider = (String) body.get("provider");
-            var code = (String) body.get("code");
+            var accessToken = (String) body.get("accessToken");
             if (provider == null || provider.isBlank()) {
                 throw invalidRequestException("provider 가 누락되었습니다.");
             }
-            if (code == null || code.isBlank()) {
-                throw invalidRequestException("code 가 누락되었습니다.");
+            if (accessToken == null || accessToken.isBlank()) {
+                throw invalidRequestException("accessToken 이 누락되었습니다.");
             }
-            return OAuthToken.unauthenticated(provider.trim(), code.trim());
+            return OAuthToken.unauthenticated(provider.trim(), accessToken.trim());
         } catch (IOException e) {
             throw invalidRequestException("요청 본문을 읽을 수 없습니다.");
         }

@@ -25,8 +25,8 @@ public class OAuthUserLoaderServiceAdaptor implements OAuthUserLoaderService {
     }
 
     @Override
-    public AuthenticatedUser loadByOAuthCode(String provider, String code) {
-        return switch (oAuthUserService.findByOAuthCode(provider, code)) {
+    public AuthenticatedUser loadByOAuthToken(String provider, String accessToken) {
+        return switch (oAuthUserService.findByOAuthToken(provider, accessToken)) {
             case CommandResult.Success(var user, var msg) -> AuthenticatedUser.of(
                 user.email(),
                 "",

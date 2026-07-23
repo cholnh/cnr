@@ -4,5 +4,5 @@ import com.toy.cnr.port.common.RepositoryResult;
 import com.toy.cnr.port.oauth.model.OAuthUserInfoDto;
 
 public interface OAuthProviderRepository {
-    RepositoryResult<OAuthUserInfoDto> fetchUserInfo(String provider, String code);
+    RepositoryResult<OAuthUserInfoDto> fetchUserInfo(String provider, String accessToken);
 }

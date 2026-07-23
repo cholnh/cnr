@@ -81,7 +81,7 @@ public class AuthRegisterApi {
 
     @Operation(
         summary = "OAuth 회원가입",
-        description = "OAuth 인가 코드를 사용하여 회원가입하고 즉시 토큰을 발급합니다. 지원 provider: `kakao`\n"
+        description = "네이티브 SDK 로 발급받은 OAuth access token 으로 회원가입하고 즉시 토큰을 발급합니다. 지원 provider: `kakao`\n"
             + "- 이미 가입된 계정이면 동일하게 `200 OK`로 토큰을 발급합니다(로그인 처리).\n",
         tags = "token-api"
     )
@@ -100,7 +100,7 @@ public class AuthRegisterApi {
         ),
         @ApiResponse(
             responseCode = "400",
-            description = "이미 가입된 계정 또는 유효하지 않은 인가 코드",
+            description = "이미 가입된 계정 또는 유효하지 않은 access token",
             content = @Content(mediaType = "application/json")
         )
     })
@@ -109,7 +109,7 @@ public class AuthRegisterApi {
         @RequestBody @Valid OAuthRegisterRequest request,
         HttpServletResponse httpServletResponse
     ) {
-        var result = authOAuthRegisterUseCase.register(request.provider().trim(), request.code().trim());
+        var result = authOAuthRegisterUseCase.register(request.provider().trim(), request.accessToken().trim());
         if (result instanceof CommandResult.Success<BearerAuthenticationToken>(var bearer, var msg)) {
             setRefreshTokenCookie(httpServletResponse, bearer);
         }

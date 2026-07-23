@@ -68,14 +68,14 @@ public class AuthDocsApi {
 
     @Operation(
         summary = "OAuth 로그인",
-        description = "OAuth 인가 코드를 사용하여 인증 토큰을 발급합니다. 지원 provider: `kakao`\n"
+        description = "네이티브 SDK 로 발급받은 OAuth access token 으로 인증 토큰을 발급합니다. 지원 provider: `kakao`\n"
             + "- 가입되지 않은 계정이면 `400 Bad Request` 를 반환합니다. 먼저 `/v1/auth/oauth/register` 로 가입하세요.\n"
             + "```\n"
             + "curl --location --request POST 'https://{{url}}/v1/auth/oauth' \\\n"
             + "--header 'Content-Type: application/json' \\\n"
             + "--data-raw '{\n"
             + "    \"provider\": \"kakao\",\n"
-            + "    \"code\": \"AUTHORIZATION_CODE\"\n"
+            + "    \"accessToken\": \"ACCESS_TOKEN\"\n"
             + "}'"
             + "```\n",
         tags = "token-api",
@@ -87,7 +87,7 @@ public class AuthDocsApi {
                 examples = @ExampleObject(
                     name = "kakao",
                     summary = "카카오 OAuth 로그인",
-                    value = "{\"provider\": \"kakao\", \"code\": \"AUTHORIZATION_CODE\"}"
+                    value = "{\"provider\": \"kakao\", \"accessToken\": \"ACCESS_TOKEN\"}"
                 )
             )
         )
@@ -107,12 +107,12 @@ public class AuthDocsApi {
         ),
         @ApiResponse(
             responseCode = "400",
-            description = "provider 또는 code 누락 / 유효하지 않은 인가 코드",
+            description = "provider 또는 accessToken 누락 / 유효하지 않은 access token",
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = FailResponse.class),
                 examples = @ExampleObject(
-                    value = "{\"success\":false,\"code\":400,\"message\":\"code 가 누락되었습니다.\"}"
+                    value = "{\"success\":false,\"code\":400,\"message\":\"accessToken 이 누락되었습니다.\"}"
                 )
             )
         )

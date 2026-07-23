@@ -6,14 +6,14 @@ import lombok.Getter;
 public class OAuthToken extends UnAuthentication {
 
     private final String provider;
-    private final String code;
+    private final String accessToken;
 
-    private OAuthToken(String provider, String code) {
+    private OAuthToken(String provider, String accessToken) {
         this.provider = provider;
-        this.code = code;
+        this.accessToken = accessToken;
     }
 
-    public static OAuthToken unauthenticated(String provider, String code) {
-        return new OAuthToken(provider, code);
+    public static OAuthToken unauthenticated(String provider, String accessToken) {
+        return new OAuthToken(provider, accessToken);
     }
 }
